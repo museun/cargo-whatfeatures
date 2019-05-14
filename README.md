@@ -16,6 +16,17 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 
 # Examples:
 
+## look up the features for the latest version of a crate
+```
+whatfeatures serde
+serde/1.0.91
+    default: std
+    alloc: unstable
+    unstable
+    derive: serde_derive
+    rc
+    std
+```
 ## look up a specific version
 ```
 whatfeatures twitchchat -v 0.5.0
