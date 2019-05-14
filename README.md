@@ -34,7 +34,7 @@ markings/0.1.0
   no default features
 ```
 
-## specific version as json
+## lookup a specific version as json
 ```
 whatfeatures twitchchat -v 0.3.0 --json | jq .    
 [
