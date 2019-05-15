@@ -7,9 +7,10 @@ Positional arguments:
 
 Optional arguments:
   -h, --help             display this message
-  -v, --version VERSION  specific version to lookup
-  -l, --list             list all version
+  -v, --version VERSION  a specific version
+  -l, --list             list all versions
   -j, --json             prints results as json
+  -c, --color            uses colors when printing as text
 ```
 
 This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features.
@@ -17,8 +18,8 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 # Examples:
 
 ## look up the features for the latest version of a crate
+>whatfeatures serde
 ```
-whatfeatures serde
 serde/1.0.91
     default: std
     alloc: unstable
@@ -28,26 +29,26 @@ serde/1.0.91
     std
 ```
 ## look up a specific version
+>whatfeatures twitchchat -v 0.5.0
 ```
-whatfeatures twitchchat -v 0.5.0
-twitchchat/0.5.0    
+twitchchat/0.5.0
     default: all
     all: serde_hashbrown, parking_lot
     serde_hashbrown: serde, hashbrown/serde
 ```
 
 ## list all versions
+>whatfeatures markings --list
 ```
-whatfeatures markings --list
 markings/0.1.1
   no default features
 markings/0.1.0
   no default features
 ```
 
-## lookup a specific version as json
-```
-whatfeatures twitchchat -v 0.3.0 --json | jq .    
+## look up a specific version as json
+>whatfeatures twitchchat -v 0.3.0 --json | jq .
+```json
 [
   {
     "features": {
@@ -69,3 +70,6 @@ whatfeatures twitchchat -v 0.3.0 --json | jq .
   }
 ]
 ```
+
+## with color
+![Screen](/etc/screen.png)

@@ -22,10 +22,10 @@ struct Args {
     #[options(help = "display this message")]
     help: bool,
 
-    #[options(help = "specific version to lookup")]
+    #[options(help = "a specific version")]
     version: Option<String>,
 
-    #[options(help = "list all version")]
+    #[options(help = "list all versions")]
     list: bool,
 
     #[options(free)]
