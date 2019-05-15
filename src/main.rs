@@ -1,5 +1,6 @@
 use gumdrop::Options;
 use std::io::Write;
+use yansi::Paint;
 
 mod crates;
 mod error;
@@ -32,6 +33,9 @@ struct Args {
 
     #[options(help = "prints results as json")]
     json: bool,
+
+    #[options(help = "uses colors when printing as text")]
+    color: bool,
 }
 
 fn main() {
@@ -39,6 +43,10 @@ fn main() {
     let w = w.lock();
 
     let args = Args::parse_args_default_or_exit();
+
+    if !args.color || cfg!(windows) && !Paint::enable_windows_ascii() {
+        Paint::disable();
+    }
 
     let mut writer: Box<dyn Output> = if args.json {
         Box::new(Json(w))
