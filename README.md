@@ -10,7 +10,8 @@ Optional arguments:
   -v, --version VERSION  a specific version
   -l, --list             list all versions
   -j, --json             prints results as json
-  -c, --color            uses colors when printing as text
+  -n, --no-color         disables using colors when printing as text
+  -c, --color            tries to use colors when printing as text
 ```
 
 This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features.
