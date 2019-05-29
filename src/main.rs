@@ -34,7 +34,10 @@ struct Args {
     #[options(help = "prints results as json")]
     json: bool,
 
-    #[options(help = "uses colors when printing as text")]
+    #[options(help = "disables using colors when printing as text")]
+    no_color: bool,
+
+    #[options(help = "tries to use colors when printing as text")]
     color: bool,
 }
 
@@ -43,8 +46,9 @@ fn main() {
     let w = w.lock();
 
     let args = Args::parse_args_default_or_exit();
+    let disable_colors = std::env::var("NO_COLOR").is_ok();
 
-    if !args.color || cfg!(windows) && !Paint::enable_windows_ascii() {
+    if disable_colors || args.no_color || cfg!(windows) && !Paint::enable_windows_ascii() {
         Paint::disable();
     }
 
@@ -94,4 +98,3 @@ fn main() {
 
     writer.output(&[versions.remove(0)]).expect("write")
 }
-
