@@ -8,13 +8,13 @@ mod json;
 mod text;
 
 use crates::Version;
-use error::{Error, Result};
+use error::{InternalError, UserError};
 use json::Json;
 use text::Text;
 
 pub trait Output: Write {
     fn output(&mut self, item: &[Version]) -> std::io::Result<()>;
-    fn error(&mut self, error: Error) -> std::io::Result<()>;
+    fn error(&mut self, error: UserError) -> std::io::Result<()>;
 }
 
 #[derive(Debug, Clone, Options)]
@@ -68,21 +68,21 @@ fn main() {
     }
 
     if args.name.is_empty() {
-        abort!(1=> Error::NoNameProvided);
+        abort!(1=> UserError::NoNameProvided);
     }
 
     let mut versions = Version::lookup(&args.name).unwrap_or_else(|err| {
         let args = args.clone();
-        let err = Error::CannotLookup {
+        let err = UserError::CannotLookup {
             name: args.name,
             version: args.version,
-            error: Box::new(err),
+            error: err,
         };
         abort!(1=> err)
     });
 
     if versions.is_empty() {
-        abort!(1=> Error::NoVersions(args.name));
+        abort!(1=> UserError::NoVersions(args.name));
     }
 
     if let Some(ver) = &args.version {
@@ -90,7 +90,7 @@ fn main() {
             writer.output(&[versions.remove(pos)]).expect("write");
             return;
         }
-        abort!(1=> Error::InvalidVersion(args.name.clone(), ver.clone()));
+        abort!(1=> UserError::InvalidVersion(args.name.clone(), ver.clone()));
     }
 
     if args.list {

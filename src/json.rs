@@ -68,12 +68,12 @@ impl<W: Write> Output for Json<W> {
         Ok(())
     }
 
-    fn error(&mut self, error: Error) -> std::io::Result<()> {
+    fn error(&mut self, error: UserError) -> std::io::Result<()> {
         let val = match error {
-            Error::NoNameProvided => serde_json::json!({
+            UserError::NoNameProvided => serde_json::json!({
                 "error": "no name provided"
             }),
-            Error::CannotLookup {
+            UserError::CannotLookup {
                 name,
                 version,
                 error,
@@ -83,16 +83,15 @@ impl<W: Write> Output for Json<W> {
                 "version": version,
                 "inner": error.to_string(),
             }),
-            Error::NoVersions(name) => serde_json::json!({
+            UserError::NoVersions(name) => serde_json::json!({
                 "error": "no versions published",
                 "name": name
             }),
-            Error::InvalidVersion(name, version) => serde_json::json!({
+            UserError::InvalidVersion(name, version) => serde_json::json!({
                 "error": "invalid version",
                 "name": name,
                 "version": version
             }),
-            _ => unreachable!("these errors shouldn't be printed"),
         };
 
         let data = serde_json::to_vec(&val)

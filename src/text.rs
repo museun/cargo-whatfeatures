@@ -85,34 +85,34 @@ impl<W: Write> Output for Text<W> {
         Ok(())
     }
 
-    fn error(&mut self, error: Error) -> std::io::Result<()> {
+    fn error(&mut self, error: UserError) -> std::io::Result<()> {
         let err_msg = Paint::new("error").fg(Color::Red);
         match error {
-            Error::NoNameProvided => {
+            UserError::NoNameProvided => {
                 eprintln!("{}: no name was provided", err_msg);
             }
-            Error::CannotLookup {
+            UserError::CannotLookup {
                 name,
                 version: Some(version),
                 ..
             } => {
                 eprintln!("{}: cannot lookup '{}/{}'", err_msg, name, version);
             }
-            Error::CannotLookup { name, .. } => {
+            UserError::CannotLookup { name, .. } => {
                 eprintln!(
                     "{}: cannot lookup '{}'. no version found",
                     err_msg,
                     Paint::new(&name).fg(Color::Green)
                 );
             }
-            Error::NoVersions(name) => {
+            UserError::NoVersions(name) => {
                 eprintln!(
                     "{}: no versions published for '{}",
                     err_msg,
                     Paint::new(&name).fg(Color::Green),
                 );
             }
-            Error::InvalidVersion(name, version) => {
+            UserError::InvalidVersion(name, version) => {
                 eprintln!(
                     "{}: invalid version '{}' for '{}'",
                     err_msg,
@@ -120,7 +120,6 @@ impl<W: Write> Output for Text<W> {
                     Paint::new(&name).fg(Color::Green),
                 );
             }
-            _ => unreachable!("these errors shouldn't be printed"),
         }
         Ok(())
     }
