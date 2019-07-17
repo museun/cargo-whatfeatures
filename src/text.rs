@@ -70,7 +70,8 @@ impl<W: Write> Output for Text<W> {
                     Paint::new("  no default features").fg(Color::Red)
                 )?;
             }
-            for (k, v) in &ver.features {
+            use std::collections::BTreeMap;
+            for (&k, v) in &ver.features.iter().collect::<BTreeMap<_, _>>() {
                 if k == "default" {
                     continue;
                 }
