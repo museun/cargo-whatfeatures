@@ -54,59 +54,63 @@ fn main() {
 
     let w = std::io::stdout();
     let w = w.lock();
-    let mut writer: Box<dyn Output> = if args.json {
-        Box::new(Json::new(w))
+
+    if args.json {
+        handle_output(Json::new(w), args);
     } else {
-        Box::new(Text::new(w))
-    };
-
-    macro_rules! abort {
-        ($code:expr=> $err:expr) => {{
-            writer.error($err).expect("write error");
-            std::process::exit($code);
-        }};
+        handle_output(Text::new(w), args);
     }
 
-    if args.name.is_empty() {
-        abort!(1=> UserError::NoNameProvided);
-    }
+    // static dispatch because: why not?
+    fn handle_output(mut writer: impl Output, args: Args) {
+        macro_rules! abort {
+            ($code:expr=> $err:expr) => {{
+                writer.error($err).expect("write error");
+                std::process::exit($code);
+            }};
+        }
 
-    let mut versions = Version::lookup(&args.name).unwrap_or_else(|err| {
-        let args = args.clone();
-        let err = UserError::CannotLookup {
-            name: args.name,
-            version: args.version,
-            error: err,
-        };
-        abort!(1=> err)
-    });
+        if args.name.is_empty() {
+            abort!(1=> UserError::NoNameProvided);
+        }
 
-    if versions.is_empty() {
-        abort!(1=> UserError::NoVersions(args.name));
-    }
+        let mut versions = Version::lookup(&args.name).unwrap_or_else(|err| {
+            let args = args.clone();
+            let err = UserError::CannotLookup {
+                name: args.name,
+                version: args.version,
+                error: err,
+            };
+            abort!(1=> err)
+        });
 
-    if let Some(ver) = &args.version {
-        if let Some(pos) = versions.iter().position(|k| k.num == ver.as_str()) {
-            writer.output(&[versions.remove(pos)]).expect("write");
+        if versions.is_empty() {
+            abort!(1=> UserError::NoVersions(args.name));
+        }
+
+        if let Some(ver) = &args.version {
+            if let Some(pos) = versions.iter().position(|k| k.num == ver.as_str()) {
+                writer.output(&[versions.remove(pos)]).expect("write");
+                return;
+            }
+            abort!(1=> UserError::InvalidVersion(args.name.clone(), ver.clone()));
+        }
+
+        if args.list {
+            writer.output(&versions).expect("write");
             return;
         }
-        abort!(1=> UserError::InvalidVersion(args.name.clone(), ver.clone()));
-    }
 
-    if args.list {
-        writer.output(&versions).expect("write");
-        return;
-    }
-
-    for ver in versions.into_iter() {
-        if ver.yanked {
-            if args.show_yanked {
-                writer.output(&[ver]).expect("write");
+        for ver in versions.into_iter() {
+            if ver.yanked {
+                if args.show_yanked {
+                    writer.output(&[ver]).expect("write");
+                }
+                continue;
             }
-            continue;
-        }
 
-        writer.output(&[ver]).expect("write");
-        break;
+            writer.output(&[ver]).expect("write");
+            break;
+        }
     }
 }
