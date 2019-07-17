@@ -2,7 +2,13 @@ use super::*;
 use std::io::Write;
 use yansi::{Color, Paint};
 
-pub struct Text<W>(pub W);
+pub struct Text<W>(W);
+
+impl<W> Text<W> {
+    pub fn new(w: W) -> Self {
+        Text(w)
+    }
+}
 
 impl<W: Write> Write for Text<W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
@@ -14,7 +20,7 @@ impl<W: Write> Write for Text<W> {
 }
 
 impl<W: Write> Output for Text<W> {
-    fn output(&mut self, vers: &[CrateVersion]) -> std::io::Result<()> {
+    fn output(&mut self, vers: &[Version]) -> std::io::Result<()> {
         fn print_args(
             list: &[String],
             main: Color,
@@ -36,11 +42,12 @@ impl<W: Write> Output for Text<W> {
             if ver.yanked {
                 writeln!(
                     self,
-                    "{}/{} has been {}",
+                    "{}: {}/{}",
+                    Paint::new("yanked").fg(Color::Red),
                     ver.crate_,
                     Paint::new(&ver.num).fg(Color::Yellow),
-                    Paint::new("yanked").fg(Color::Red),
-                )?
+                )?;
+                continue;
             } else {
                 writeln!(
                     self,
@@ -87,19 +94,15 @@ impl<W: Write> Output for Text<W> {
             Error::CannotLookup {
                 name,
                 version: Some(version),
-                error,
+                ..
             } => {
-                eprintln!(
-                    "{}: cannot lookup '{}/{}': {}",
-                    err_msg, name, version, error
-                );
+                eprintln!("{}: cannot lookup '{}/{}'", err_msg, name, version);
             }
-            Error::CannotLookup { name, error, .. } => {
+            Error::CannotLookup { name, .. } => {
                 eprintln!(
-                    "{}: cannot lookup '{}': {}",
+                    "{}: cannot lookup '{}'. no version found",
                     err_msg,
-                    Paint::new(&name).fg(Color::Green),
-                    Paint::new(&error).fg(Color::Red)
+                    Paint::new(&name).fg(Color::Green)
                 );
             }
             Error::NoVersions(name) => {
@@ -117,6 +120,7 @@ impl<W: Write> Output for Text<W> {
                     Paint::new(&name).fg(Color::Green),
                 );
             }
+            _ => unreachable!("these errors shouldn't be printed"),
         }
         Ok(())
     }

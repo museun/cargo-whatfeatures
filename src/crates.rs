@@ -1,8 +1,10 @@
+use crate::{Error, Result};
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CrateVersion {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Version {
     pub id: u64,
     #[serde(rename = "crate")]
     pub crate_: String,
@@ -11,32 +13,28 @@ pub struct CrateVersion {
     pub yanked: bool,
 }
 
-impl CrateVersion {
-    pub fn lookup(crate_name: &str) -> Result<Vec<Self>, String> {
-        use serde_json::Value;
+impl Version {
+    pub fn lookup(crate_name: &str) -> Result<Vec<Self>> {
+        let ep = format!("https://crates.io/api/v1/crates/{}", crate_name);
 
-        let resp = attohttpc::get(format!("https://crates.io/api/v1/crates/{}", crate_name))
-            .header("User-Agent", "whatfeatures/1.0")
-            .send()
-            .map_err(|err| err.to_string())?;
-
-        let body = resp.text().map_err(|err| err.to_string())?;
-        serde_json::from_str::<Value>(&body)
-            .map_err(|err| err.to_string())?
-            .get_mut("versions")
-            .ok_or_else(|| "unknown crate".to_string())
-            .map(Value::take)
-            .and_then(|mut obj| {
-                obj.as_array_mut()
-                    .map(|array| {
-                        array
-                            .iter_mut()
-                            .map(Value::take)
-                            .map(serde_json::from_value)
-                            .flatten()
-                            .collect()
-                    })
-                    .ok_or_else(|| "no versions published".to_string())
-            })
+        #[derive(Deserialize)]
+        struct Wrap {
+            versions: Vec<Version>,
+        }
+        fetch(ep).map(|wrap: Wrap| wrap.versions)
     }
+}
+
+fn fetch<T>(ep: impl AsRef<str>) -> Result<T>
+where
+    for<'a> T: serde::Deserialize<'a>,
+{
+    let resp = attohttpc::get(ep)
+        .header("User-Agent", env!("WHATFEATURES_USER_AGENT"))
+        .send()
+        .map_err(Error::Http)?;
+
+    resp.text()
+        .map_err(Error::Http)
+        .and_then(|body| serde_json::from_str(&body).map_err(Error::Json))
 }

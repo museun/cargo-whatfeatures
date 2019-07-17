@@ -7,13 +7,13 @@ mod error;
 mod json;
 mod text;
 
-use crates::CrateVersion;
-use error::Error;
+use crates::Version;
+use error::{Error, Result};
 use json::Json;
 use text::Text;
 
 pub trait Output: Write {
-    fn output(&mut self, vers: &[CrateVersion]) -> std::io::Result<()>;
+    fn output(&mut self, item: &[Version]) -> std::io::Result<()>;
     fn error(&mut self, error: Error) -> std::io::Result<()>;
 }
 
@@ -34,6 +34,9 @@ struct Args {
     #[options(help = "prints results as json")]
     json: bool,
 
+    #[options(help = "shows any yanked versions before the latest stable")]
+    show_yanked: bool,
+
     #[options(help = "disables using colors when printing as text")]
     no_color: bool,
 
@@ -42,9 +45,6 @@ struct Args {
 }
 
 fn main() {
-    let w = std::io::stdout();
-    let w = w.lock();
-
     let args = Args::parse_args_default_or_exit();
     let disable_colors = std::env::var("NO_COLOR").is_ok();
 
@@ -52,10 +52,12 @@ fn main() {
         Paint::disable();
     }
 
+    let w = std::io::stdout();
+    let w = w.lock();
     let mut writer: Box<dyn Output> = if args.json {
-        Box::new(Json(w))
+        Box::new(Json::new(w))
     } else {
-        Box::new(Text(w))
+        Box::new(Text::new(w))
     };
 
     macro_rules! abort {
@@ -69,12 +71,12 @@ fn main() {
         abort!(1=> Error::NoNameProvided);
     }
 
-    let mut versions = CrateVersion::lookup(&args.name).unwrap_or_else(|err| {
+    let mut versions = Version::lookup(&args.name).unwrap_or_else(|err| {
         let args = args.clone();
         let err = Error::CannotLookup {
             name: args.name,
             version: args.version,
-            error: err,
+            error: Box::new(err),
         };
         abort!(1=> err)
     });
@@ -96,5 +98,15 @@ fn main() {
         return;
     }
 
-    writer.output(&[versions.remove(0)]).expect("write")
+    for ver in versions.into_iter() {
+        if ver.yanked {
+            if args.show_yanked {
+                writer.output(&[ver]).expect("write");
+            }
+            continue;
+        }
+
+        writer.output(&[ver]).expect("write");
+        break;
+    }
 }
