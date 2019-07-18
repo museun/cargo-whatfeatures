@@ -5,7 +5,7 @@ pub struct Args {
     #[options(help = "display this message")]
     pub help: bool,
 
-    #[options(help = "look up the depencies for this crate instead")]
+    #[options(help = "look up the dependencies for this crate instead")]
     pub deps: bool,
 
     #[options(help = "a specific version")]
