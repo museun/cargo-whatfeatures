@@ -2,7 +2,7 @@ use std::io::{Error, ErrorKind, Result, Write};
 
 use super::crates::{Dependency, DependencyKind, Version};
 use super::error::UserError;
-use super::NameVer;
+use super::{NameVer, YankedNameVer};
 
 pub struct Json<W: Write> {
     w: W,
@@ -58,12 +58,28 @@ pub trait AsJson<W> {
     fn write_as_json(&self, writer: &mut W) -> Result<()>;
 }
 
+impl<'a, W: Write> AsJson<W> for YankedNameVer<'a> {
+    fn write_as_json(&self, writer: &mut W) -> Result<()> {
+        let YankedNameVer(name, ver) = self;
+        let data = serde_json::to_vec(&serde_json::json!({
+            "name": name,
+            "version": ver,
+            "yanked": true,
+        }))
+        .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
+
+        writer.write_all(&data)?;
+        writeln!(writer)
+    }
+}
+
 impl<'a, W: Write> AsJson<W> for NameVer<'a> {
     fn write_as_json(&self, writer: &mut W) -> Result<()> {
         let NameVer(name, ver) = self;
         let data = serde_json::to_vec(&serde_json::json!({
             "name": name,
             "version": ver,
+            "yanked": false,
         }))
         .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
 

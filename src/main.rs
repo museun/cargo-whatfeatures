@@ -16,6 +16,7 @@ use json::{AsJson, Json};
 use text::{AsText, DepState};
 
 pub struct NameVer<'a>(pub &'a str, pub &'a str);
+pub struct YankedNameVer<'a>(pub &'a str, pub &'a str);
 
 fn main() {
     let args = Args::parse_args_default_or_exit();
@@ -85,19 +86,39 @@ fn main() {
 
         if args.list {
             for version in versions {
-                write_format!(&version);
+                if args.only_version {
+                    if version.yanked {
+                        let nv = YankedNameVer(&version.crate_, &version.num);
+                        write_format!(&nv);
+                    } else {
+                        let nv = NameVer(&version.crate_, &version.num);
+                        write_format!(&nv);
+                    }
+                } else {
+                    write_format!(&version);
+                }
             }
             return;
         }
 
         for ver in versions.into_iter() {
             if !ver.yanked {
-                write_format!(&ver);
+                if args.only_version {
+                    let nv = NameVer(&ver.crate_, &ver.num);
+                    write_format!(&nv);
+                } else {
+                    write_format!(&ver);
+                }
                 break;
             }
 
             if args.show_yanked {
-                write_format!(&ver);
+                if args.only_version {
+                    let nv = YankedNameVer(&ver.crate_, &ver.num);
+                    write_format!(&nv);
+                } else {
+                    write_format!(&ver);
+                }
             }
         }
         return;
@@ -137,7 +158,6 @@ fn main() {
     }
 
     use std::collections::HashMap;
-
     let mut deps = deps.into_iter().fold(
         HashMap::<DependencyKind, Vec<Dependency>>::new(),
         |mut map, dep| {

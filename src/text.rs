@@ -3,7 +3,7 @@ use yansi::{Color, Paint};
 
 use super::crates::{Dependency, DependencyKind, Version};
 use super::error::UserError;
-use super::NameVer;
+use super::{NameVer, YankedNameVer};
 
 pub trait AsText<W> {
     type State: Default;
@@ -25,6 +25,20 @@ impl<'a, W: Write> AsText<W> for NameVer<'a> {
     fn write_as_text(&self, writer: &mut W, _state: &Self::State) -> Result<()> {
         let NameVer(name, ver) = self;
         writeln!(writer, "{}/{}", name, Paint::new(&ver).fg(Color::Yellow))
+    }
+}
+
+impl<'a, W: Write> AsText<W> for YankedNameVer<'a> {
+    type State = NoTextState;
+    fn write_as_text(&self, writer: &mut W, _state: &Self::State) -> Result<()> {
+        let YankedNameVer(name, ver) = self;
+        writeln!(
+            writer,
+            "{}: {}/{}",
+            Paint::new("yanked").fg(Color::Red),
+            name,
+            Paint::new(&ver).fg(Color::Yellow)
+        )
     }
 }
 
