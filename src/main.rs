@@ -80,12 +80,12 @@ fn main() {
             report_error!(UserError::NoVersions(name.clone()))
         }
 
-        if let Some(ver) = args.version {
+        if let Some(ver) = &args.version {
             if let Some(ver) = versions.iter().find(|k| &k.num == ver.as_str()) {
                 write_format!(&ver);
-                return;
+            } else {
+                report_error!(UserError::InvalidVersion(name.clone(), ver.clone()))
             }
-            report_error!(UserError::InvalidVersion(name.clone(), ver.clone()))
         }
 
         if args.list {
@@ -105,23 +105,25 @@ fn main() {
             return;
         }
 
-        for ver in versions.into_iter() {
-            if !ver.yanked {
-                if args.only_version {
-                    let nv = NameVer(&ver.crate_, &ver.num);
-                    write_format!(&nv);
-                } else {
-                    write_format!(&ver);
+        if args.version.is_none() {
+            for ver in versions.into_iter() {
+                if !ver.yanked {
+                    if args.only_version {
+                        let nv = NameVer(&ver.crate_, &ver.num);
+                        write_format!(&nv);
+                    } else {
+                        write_format!(&ver);
+                    }
+                    break;
                 }
-                break;
-            }
 
-            if args.show_yanked {
-                if args.only_version {
-                    let nv = YankedNameVer(&ver.crate_, &ver.num);
-                    write_format!(&nv);
-                } else {
-                    write_format!(&ver);
+                if args.show_yanked {
+                    if args.only_version {
+                        let nv = YankedNameVer(&ver.crate_, &ver.num);
+                        write_format!(&nv);
+                    } else {
+                        write_format!(&ver);
+                    }
                 }
             }
         }
