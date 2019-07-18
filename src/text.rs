@@ -167,6 +167,11 @@ impl<W: Write> AsText<W> for UserError {
 
         let err_msg = Paint::new("error").fg(Color::Red);
         match self {
+            MustOutputSomething => writeln!(
+                writer,
+                "{}: `-f false` cannot be used without --deps",
+                err_msg
+            ),
             NoNameProvided => writeln!(writer, "{}: no name was provided", err_msg),
             CannotLookup {
                 name,

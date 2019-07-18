@@ -63,7 +63,11 @@ fn main() {
         report_error!(UserError::NoNameProvided);
     }
 
-    if !args.deps {
+    if !*args.features && !args.deps {
+        report_error!(UserError::MustOutputSomething)
+    }
+
+    if *args.features {
         let versions = crates::lookup_versions(&name).unwrap_or_else(|err| {
             report_error!(UserError::CannotLookup {
                 name: name.clone(),
@@ -121,6 +125,9 @@ fn main() {
                 }
             }
         }
+    }
+
+    if !args.deps {
         return;
     }
 
