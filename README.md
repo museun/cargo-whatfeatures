@@ -7,14 +7,15 @@ Positional arguments:
 
 Optional arguments:
   -h, --help             display this message
-  -d, --deps             look up the dependencies for this crate instead     
+  -d, --deps             look up the dependencies for this crate
   -v, --version VERSION  a specific version
+  -f, --features bool    displays the features (default: true)
   -o, --only-version     list only the name/version for the crate
   -l, --list             list all versions
   -s, --show-yanked      shows any yanked versions before the latest stable
   -j, --json             prints results as json
-  -n, --no-color         disables using colors when printing as text      
-  -c, --color            tries to use colors when printing as text (default)
+  -n, --no-color         disables using colors when printing as text
+  -c, --color            tries to use colors when printing as text (default: true)
 ```
 
 This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
@@ -96,15 +97,23 @@ futures/0.1.28
 ```
 
 ## get the deps for the current release of a crate
+### note use -f false to not list the features
 >whatfeatures curl --deps
 ```
+curl/0.4.22
+    default: ssl
+    force-system-lib-on-osx: curl-sys/force-system-lib-on-osx
+    http2: curl-sys/http2
+    ssl: openssl-sys, openssl-probe, curl-sys/ssl
+    static-curl: curl-sys/static-curl
+    static-ssl: curl-sys/static-ssl
 curl/0.4.22
   normal
     curl-sys      = ^0.4.18
     kernel32-sys  = ^0.2.2  if cfg(target_env = "msvc")
     libc          = ^0.2.42
-    openssl-probe = ^0.1.2  if cfg(all(unix, not(target_os = "macos")))   
-    openssl-sys   = ^0.9.43 if cfg(all(unix, not(target_os = "macos")))   
+    openssl-probe = ^0.1.2  if cfg(all(unix, not(target_os = "macos")))
+    openssl-sys   = ^0.9.43 if cfg(all(unix, not(target_os = "macos")))
     schannel      = ^0.1.13 if cfg(target_env = "msvc")
     socket2       = ^0.3.7
     winapi        = ^0.2.7  if cfg(windows)
@@ -114,19 +123,22 @@ curl/0.4.22
 ```
 
 ## get the deps for a specific crate
+### note use -f false to not list the features
 >whatfeatures curl --deps -v 0.3.0
 ```
+curl/0.3.0
+  no default features
 curl/0.3.0
   normal
     curl-sys    = ^0.2.0
     libc        = ^0.2
-    openssl-sys = ^0.7.0 if cfg(all(unix, not(target_os = "macos")))      
+    openssl-sys = ^0.7.0 if cfg(all(unix, not(target_os = "macos")))
   dev
     mio         = ^0.5
 ```
 
 ## get the deps for the current release of a crate
->whatfeatures curl --deps --json | jq .
+>whatfeatures curl -f false --deps --json | jq .
 ```json
 [
   {
@@ -247,7 +259,7 @@ curl/0.3.0
 ```
 
 ## get the deps for a specific crate as json
->whatfeatures curl --deps -v 0.3.0 --json | jq .
+>whatfeatures curl -f false --deps -v 0.3.0 --json | jq .
 ```json
 [
   {

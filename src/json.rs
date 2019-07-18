@@ -122,6 +122,9 @@ impl<W: Write> AsJson<W> for UserError {
     fn write_as_json(&self, writer: &mut W) -> Result<()> {
         use UserError::*;
         let val = match self {
+            MustOutputSomething => serde_json::json!({
+                "error": "-f false cannot be used without --deps"
+            }),
             NoNameProvided => serde_json::json!({
                 "error": "no name provided"
             }),

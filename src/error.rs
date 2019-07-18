@@ -8,6 +8,7 @@ pub enum UserError {
     },
     NoVersions(String),
     InvalidVersion(String, String),
+    MustOutputSomething,
 }
 
 #[derive(Debug)]
