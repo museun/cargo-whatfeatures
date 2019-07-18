@@ -11,6 +11,9 @@ pub struct Args {
     #[options(help = "a specific version")]
     pub version: Option<String>,
 
+    #[options(help = "list only the name/version for the crate")]
+    pub only_version: bool,
+
     #[options(help = "list all versions")]
     pub list: bool, // TODO this should do nothing when --deps is used
 
