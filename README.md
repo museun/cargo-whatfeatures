@@ -97,7 +97,7 @@ futures/0.1.28
 ```
 
 ## get the deps for the current release of a crate
-**note** use -f false to not list the features
+**note** use `-f false` to not list the features
 >whatfeatures curl --deps
 ```
 curl/0.4.22
@@ -123,7 +123,7 @@ curl/0.4.22
 ```
 
 ## get the deps for a specific crate
-**note** use -f false to not list the features
+**note** use `-f false` to not list the features
 >whatfeatures curl --deps -v 0.3.0
 ```
 curl/0.3.0
