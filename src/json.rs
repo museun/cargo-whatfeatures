@@ -1,4 +1,8 @@
-use std::io::{Result, Write};
+use std::io::{Error, ErrorKind, Result, Write};
+
+use super::crates::{Dependency, DependencyKind, Version};
+use super::error::UserError;
+use super::NameVer;
 
 pub struct Json<W: Write> {
     w: W,
@@ -47,5 +51,89 @@ impl<W: Write> Write for Json<W> {
         }
         self.w.write_all(&[b']'])?;
         self.w.flush()
+    }
+}
+
+pub trait AsJson<W> {
+    fn write_as_json(&self, writer: &mut W) -> Result<()>;
+}
+
+impl<'a, W: Write> AsJson<W> for NameVer<'a> {
+    fn write_as_json(&self, writer: &mut W) -> Result<()> {
+        let NameVer(name, ver) = self;
+        let data = serde_json::to_vec(&serde_json::json!({
+            "name": name,
+            "version": ver,
+        }))
+        .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
+
+        writer.write_all(&data)?;
+        writeln!(writer)
+    }
+}
+
+impl<W: Write> AsJson<W> for Dependency {
+    fn write_as_json(&self, writer: &mut W) -> Result<()> {
+        let data = serde_json::to_vec(self) //
+            .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
+        writer.write_all(&data)?;
+        writeln!(writer)
+    }
+}
+
+impl<W: Write> AsJson<W> for DependencyKind {
+    fn write_as_json(&self, _writer: &mut W) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl<W: Write> AsJson<W> for Version {
+    fn write_as_json(&self, writer: &mut W) -> Result<()> {
+        let data = serde_json::to_vec(&serde_json::json!({
+            "yanked": self.yanked,
+            "name": self.crate_,
+            "version": self.num,
+            "features": self.features
+        }))
+        .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
+
+        writer.write_all(&data)?;
+        writeln!(writer)
+    }
+}
+
+impl<W: Write> AsJson<W> for UserError {
+    fn write_as_json(&self, writer: &mut W) -> Result<()> {
+        use UserError::*;
+        let val = match self {
+            NoNameProvided => serde_json::json!({
+                "error": "no name provided"
+            }),
+            CannotLookup {
+                name,
+                version,
+                error,
+            } => serde_json::json!({
+                "error": "cannot lookup crate",
+                "name": name,
+                "version": version,
+                "inner": error.to_string(),
+            }),
+            NoVersions(name) => serde_json::json!({
+                "error": "no versions published",
+                "name": name
+            }),
+            InvalidVersion(name, version) => serde_json::json!({
+                "error": "invalid version",
+                "name": name,
+                "version": version
+            }),
+        };
+
+        let data = serde_json::to_vec(&val) //
+            .map_err(|err| Error::new(ErrorKind::InvalidData, err))?;
+        writer.write_all(&data)?;
+        writeln!(writer)?;
+        writer.flush()
     }
 }

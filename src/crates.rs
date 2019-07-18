@@ -24,6 +24,7 @@ pub struct Dependency {
     pub optional: bool,
     pub default_features: bool,
     pub features: Vec<String>,
+    // TODO parse this to match the semantics of the target section in the manifest
     pub target: Option<String>,
     pub kind: DependencyKind,
 }
@@ -36,17 +37,7 @@ pub enum DependencyKind {
     Build,
 }
 
-pub fn lookup_deps(name: &str) -> Result<Vec<Dependency>> {
-    let mut parts = name.split('/');
-    let (name, ver) = match (parts.next(), parts.next()) {
-        (Some(name), Some(ver)) => (name.to_string(), ver.to_string()),
-        (Some(..), ..) => {
-            let ver = lookup_versions(name)?.remove(0);
-            (ver.crate_, ver.num)
-        }
-        (None, ..) => unimplemented!("missing crate name spec"),
-    };
-
+pub fn lookup_deps(name: &str, ver: &str) -> Result<Vec<Dependency>> {
     #[derive(Deserialize)]
     struct Wrap {
         dependencies: Vec<Dependency>,
