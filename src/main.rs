@@ -67,6 +67,7 @@ fn main() {
         report_error!(UserError::MustOutputSomething)
     }
 
+    // TODO get rid of this if soup
     if *args.features {
         let versions = crates::lookup_versions(&name).unwrap_or_else(|err| {
             report_error!(UserError::CannotLookup {
