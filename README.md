@@ -9,6 +9,7 @@ Optional arguments:
   -h, --help             display this message
   -d, --deps             look up the dependencies for this crate instead     
   -v, --version VERSION  a specific version
+  -o, --only-version     list only the name/version for the crate
   -l, --list             list all versions
   -s, --show-yanked      shows any yanked versions before the latest stable
   -j, --json             prints results as json
