@@ -3,6 +3,8 @@ use crate::InternalError;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+type Result<T> = std::result::Result<T, InternalError>;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
     pub id: u64,
@@ -13,19 +15,64 @@ pub struct Version {
     pub yanked: bool,
 }
 
-impl Version {
-    pub fn lookup(crate_name: &str) -> Result<Vec<Self>, InternalError> {
-        let ep = format!("https://crates.io/api/v1/crates/{}", crate_name);
-
-        #[derive(Deserialize)]
-        struct Wrap {
-            versions: Vec<Version>,
-        }
-        fetch(ep).map(|wrap: Wrap| wrap.versions)
-    }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dependency {
+    pub id: usize,
+    pub version_id: usize,
+    pub crate_id: String,
+    pub req: String,
+    pub optional: bool,
+    pub default_features: bool,
+    pub features: Vec<String>,
+    pub target: Option<String>,
+    pub kind: DependencyKind,
 }
 
-fn fetch<T>(ep: impl AsRef<str>) -> Result<T, InternalError>
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DependencyKind {
+    Normal,
+    Dev,
+    Build,
+}
+
+pub fn lookup_deps(name: &str) -> Result<Vec<Dependency>> {
+    let mut parts = name.split('/');
+    let (name, ver) = match (parts.next(), parts.next()) {
+        (Some(name), Some(ver)) => (name.to_string(), ver.to_string()),
+        (Some(..), ..) => {
+            let ver = lookup_versions(name)?.remove(0);
+            (ver.crate_, ver.num)
+        }
+        (None, ..) => unimplemented!("missing crate name spec"),
+    };
+
+    #[derive(Deserialize)]
+    struct Wrap {
+        dependencies: Vec<Dependency>,
+    }
+
+    fetch::<Wrap>(&format!(
+        "https://crates.io/api/v1/crates/{}/{}/dependencies",
+        name, ver,
+    ))
+    .map(|item| item.dependencies)
+}
+
+pub fn lookup_versions(crate_name: &str) -> Result<Vec<Version>> {
+    #[derive(Deserialize)]
+    struct Wrap {
+        versions: Vec<Version>,
+    }
+
+    fetch::<Wrap>(&format!(
+        "https://crates.io/api/v1/crates/{}", //
+        crate_name
+    ))
+    .map(|item| item.versions)
+}
+
+fn fetch<T>(ep: &str) -> Result<T>
 where
     for<'a> T: serde::Deserialize<'a>,
 {
