@@ -1,4 +1,30 @@
-## whatfeatures
+# whatfeatures
+## Table of Contents
+- [Install](#install)
+- [Usage](#usage)
+- [Examples](#examples)
+  * [look up the features for the latest version of a crate](#look-up-the-features-for-the-latest-version-of-a-crate)
+  * [look up a specific version](#look-up-a-specific-version)
+  * [look up a specific version as json](#look-up-a-specific-version-as-json)
+  * [display yanked releases that are newer than the current](#display-yanked-releases-that-are-newer-than-the-current)
+  * [get the deps for the current release of a crate](#get-the-deps-for-the-current-release-of-a-crate)
+  * [get the deps for a specific crate](#get-the-deps-for-a-specific-crate)
+  * [get the deps for the current release of a crate](#get-the-deps-for-the-current-release-of-a-crate)
+  * [get the deps for a specific crate as json](#get-the-deps-for-a-specific-crate-as-json)
+  
+## Install
+with rustup installed, simply do:
+```
+cargo install --git https://github.com/museun/whatfeatures -f
+```
+or
+```
+git clone https://github.com/museun/whatfeatures
+cd whatfeatures
+cargo install --path . -f
+```
+
+## Usage
 ```
 Usage: whatfeatures [OPTIONS]
 
@@ -22,9 +48,8 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 
 note: `--show-yanked` and `--list` do nothing when `--deps` is used
 
-# Examples:
-
-## look up the features for the latest version of a crate
+## Examples:
+### look up the features for the latest version of a crate
 >whatfeatures serde
 <details><summary>output</summary>
     
@@ -39,7 +64,7 @@ serde/1.0.97
 ```
 </details>
 
-## look up a specific version
+### look up a specific version
 >whatfeatures twitchchat -v 0.5.0
 <details><summary>output</summary>
 
@@ -51,7 +76,7 @@ twitchchat/0.5.0
 ```
 </details>
 
-## list all versions
+### list all versions
 >whatfeatures markings --list
 <details><summary>output</summary>
 
@@ -63,7 +88,7 @@ markings/0.1.0
 ```
 </details>
 
-## look up a specific version as json
+### look up a specific version as json
 >whatfeatures twitchchat -v 0.3.0 --json | jq .
 <details><summary>output</summary>
 
@@ -91,7 +116,7 @@ markings/0.1.0
 ```
 </details>
 
-## display yanked releases that are newer than the current (e.g. `futures`)
+### display yanked releases that are newer than the current
 >whatfeatures futures --show-yanked
 <details><summary>output</summary>
 
@@ -112,7 +137,7 @@ futures/0.1.28
 ```
 </details>
 
-## get the deps for the current release of a crate
+### get the deps for the current release of a crate
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps
 <details><summary>output</summary>
@@ -141,7 +166,7 @@ curl/0.4.22
 ```
 </details>
 
-## get the deps for a specific crate
+### get the deps for a specific crate
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps -v 0.3.0
 <details><summary>output</summary>
@@ -159,7 +184,7 @@ curl/0.3.0
 ```
 </details>
 
-## get the deps for the current release of a crate
+### get the deps for the current release of a crate
 >whatfeatures curl -f false --deps --json | jq .
 <details><summary>output</summary>
 
@@ -283,7 +308,7 @@ curl/0.3.0
 ```
 </details>
 
-## get the deps for a specific crate as json
+### get the deps for a specific crate as json
 >whatfeatures curl -f false --deps -v 0.3.0 --json | jq .
 <details><summary>output</summary>
 
