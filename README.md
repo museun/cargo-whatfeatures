@@ -26,6 +26,8 @@ note: `--show-yanked` and `--list` do nothing when `--deps` is used
 
 ## look up the features for the latest version of a crate
 >whatfeatures serde
+<details><summary>output</summary>
+    
 ```
 serde/1.0.97
     default: std
@@ -35,26 +37,36 @@ serde/1.0.97
     std
     unstable
 ```
+</details>
+
 ## look up a specific version
 >whatfeatures twitchchat -v 0.5.0
+<details><summary>output</summary>
+
 ```
 twitchchat/0.5.0
     default: all
     all: serde_hashbrown, parking_lot
     serde_hashbrown: serde, hashbrown/serde
 ```
+</details>
 
 ## list all versions
 >whatfeatures markings --list
+<details><summary>output</summary>
+
 ```
 markings/0.1.1
   no default features
 markings/0.1.0
   no default features
 ```
+</details>
 
 ## look up a specific version as json
 >whatfeatures twitchchat -v 0.3.0 --json | jq .
+<details><summary>output</summary>
+
 ```json
 [
   {
@@ -77,9 +89,12 @@ markings/0.1.0
   }
 ]
 ```
+</details>
 
 ## display yanked releases that are newer than the current (e.g. `futures`)
 >whatfeatures futures --show-yanked
+<details><summary>output</summary>
+
 ```
 yanked: futures/0.2.3-docs-yank.4
 yanked: futures/0.2.3-docs-yank.3
@@ -95,10 +110,13 @@ futures/0.1.28
     use_std
     with-deprecated
 ```
+</details>
 
 ## get the deps for the current release of a crate
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps
+<details><summary>output</summary>
+
 ```
 curl/0.4.22
     default: ssl
@@ -121,10 +139,13 @@ curl/0.4.22
     mio           = ^0.6
     mio-extras    = ^2.0.3
 ```
+</details>
 
 ## get the deps for a specific crate
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps -v 0.3.0
+<details><summary>output</summary>
+
 ```
 curl/0.3.0
   no default features
@@ -136,9 +157,12 @@ curl/0.3.0
   dev
     mio         = ^0.5
 ```
+</details>
 
 ## get the deps for the current release of a crate
 >whatfeatures curl -f false --deps --json | jq .
+<details><summary>output</summary>
+
 ```json
 [
   {
@@ -257,9 +281,12 @@ curl/0.3.0
   }
 ]
 ```
+</details>
 
 ## get the deps for a specific crate as json
 >whatfeatures curl -f false --deps -v 0.3.0 --json | jq .
+<details><summary>output</summary>
+
 ```json
 [
   {
@@ -312,3 +339,4 @@ curl/0.3.0
   }
 ]
 ```
+<details>
