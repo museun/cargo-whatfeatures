@@ -9,7 +9,8 @@
   * [display yanked releases that are newer than the current](#display-yanked-releases-that-are-newer-than-the-current)
   * [get the deps for the current release of a crate](#get-the-deps-for-the-current-release-of-a-crate)
   * [get the deps for a specific crate](#get-the-deps-for-a-specific-crate)
-  * [get the deps for the current release of a crate](#get-the-deps-for-the-current-release-of-a-crate)
+  * [list all name and version pairs for a crate](#list-all-name-and-version-pairs-for-a-crate)
+  * [get the deps for the current release of a crate as json](#get-the-deps-for-the-current-release-of-a-crate-as-json)
   * [get the deps for a specific crate as json](#get-the-deps-for-a-specific-crate-as-json)
   
 ## Install
@@ -184,7 +185,24 @@ curl/0.3.0
 ```
 </details>
 
-### get the deps for the current release of a crate
+### list all name and version pairs for a crate
+>whatfeatures -l -o lock-api
+<details><summary>output</summary>
+
+```
+lock_api/0.3.1
+yanked: lock_api/0.3.0
+lock_api/0.2.0
+lock_api/0.1.5
+lock_api/0.1.4
+lock_api/0.1.3
+yanked: lock_api/0.1.2
+lock_api/0.1.1
+lock_api/0.1.0
+```
+</details>
+
+### get the deps for the current release of a crate as json
 >whatfeatures curl -f false --deps --json | jq .
 <details><summary>output</summary>
 
