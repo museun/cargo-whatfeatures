@@ -3,15 +3,20 @@
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
-  * [look up the features for the latest version of a crate](#look-up-the-features-for-the-latest-version-of-a-crate)
-  * [look up a specific version](#look-up-a-specific-version)
-  * [look up a specific version as json](#look-up-a-specific-version-as-json)
-  * [display yanked releases that are newer than the current](#display-yanked-releases-that-are-newer-than-the-current)
-  * [get the deps for the current release of a crate](#get-the-deps-for-the-current-release-of-a-crate)
-  * [get the deps for a specific crate](#get-the-deps-for-a-specific-crate)
-  * [list all name and version pairs for a crate](#list-all-name-and-version-pairs-for-a-crate)
-  * [get the deps for the current release of a crate as json](#get-the-deps-for-the-current-release-of-a-crate-as-json)
-  * [get the deps for a specific crate as json](#get-the-deps-for-a-specific-crate-as-json)
+  * [Features](#features)
+    - [list the features for the latest version](#list-the-features-for-the-latest-version)
+    - [list the features for a specific version](#list-the-features-for-a-specific-version)
+    - [list the features for the latest version as json](#list-the-features-for-the-latest-version-as-json)
+    - [list the features for a specific version as json](#list-the-features-for-a-specific-version-as-json)
+    - [display yanked releases that are newer than the current](#display-yanked-releases-that-are-newer-than-the-current)
+  * [Simple listing](#simple-listing)    
+    - [list all name and version pairs](#list-all-name-and-version-pairs)
+    - [list all features for all versions](#list-all-features-for-all-versions)
+  * [Dependencies](#dependencies)
+    - [list the deps for the latest version](#list-the-deps-for-the-latest-version)
+    - [list the deps for a specific version](#list-the-deps-for-a-specific-version)
+    - [list the deps for the latest version as json](#list-the-deps-for-the-latest-version-as-json)
+    - [list the deps for a specific version as json](#list-the-deps-for-a-specific-version-as-json)
   
 ## Install
 with rustup installed, simply do:
@@ -50,7 +55,8 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 note: `--show-yanked` and `--list` do nothing when `--deps` is used
 
 ## Examples:
-### look up the features for the latest version of a crate
+### Features
+#### list the features for the latest version
 >whatfeatures serde
 <details><summary>output</summary>
     
@@ -65,7 +71,7 @@ serde/1.0.97
 ```
 </details>
 
-### look up a specific version
+#### list the features for a specific version
 >whatfeatures twitchchat -v 0.5.0
 <details><summary>output</summary>
 
@@ -77,7 +83,7 @@ twitchchat/0.5.0
 ```
 </details>
 
-### list all versions
+#### list the features for the latest version as json
 >whatfeatures markings --list
 <details><summary>output</summary>
 
@@ -89,7 +95,7 @@ markings/0.1.0
 ```
 </details>
 
-### look up a specific version as json
+#### list the features for a specific version as json
 >whatfeatures twitchchat -v 0.3.0 --json | jq .
 <details><summary>output</summary>
 
@@ -117,7 +123,7 @@ markings/0.1.0
 ```
 </details>
 
-### display yanked releases that are newer than the current
+#### display yanked releases that are newer than the current
 >whatfeatures futures --show-yanked
 <details><summary>output</summary>
 
@@ -138,7 +144,56 @@ futures/0.1.28
 ```
 </details>
 
-### get the deps for the current release of a crate
+### Simple listing
+#### list all name and version pairs
+>whatfeatures -l -o lock-api
+<details><summary>output</summary>
+
+```
+lock_api/0.3.1
+yanked: lock_api/0.3.0
+lock_api/0.2.0
+lock_api/0.1.5
+lock_api/0.1.4
+lock_api/0.1.3
+yanked: lock_api/0.1.2
+lock_api/0.1.1
+lock_api/0.1.0
+```
+</details>
+
+#### list all features for all versions
+>whatfeatures simple-logger --list
+<details><summary>output</summary>
+
+```
+simple_logger/1.3.0
+    default: colored
+simple_logger/1.2.0
+    default: colored
+simple_logger/1.1.0
+  no default features
+simple_logger/1.0.1
+  no default features
+simple_logger/1.0.0
+  no default features
+simple_logger/0.5.0
+  no default features
+simple_logger/0.4.0
+  no default features
+simple_logger/0.3.1
+  no default features
+simple_logger/0.3.0
+  no default features
+simple_logger/0.1.0
+  no default features
+simple_logger/0.0.2
+  no default features
+```
+</details>
+
+### Dependencies
+#### list the deps for the latest version
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps
 <details><summary>output</summary>
@@ -167,7 +222,7 @@ curl/0.4.22
 ```
 </details>
 
-### get the deps for a specific crate
+#### list the deps for a specific version
 **note** use `-f false` to not list the features
 >whatfeatures curl --deps -v 0.3.0
 <details><summary>output</summary>
@@ -185,24 +240,7 @@ curl/0.3.0
 ```
 </details>
 
-### list all name and version pairs for a crate
->whatfeatures -l -o lock-api
-<details><summary>output</summary>
-
-```
-lock_api/0.3.1
-yanked: lock_api/0.3.0
-lock_api/0.2.0
-lock_api/0.1.5
-lock_api/0.1.4
-lock_api/0.1.3
-yanked: lock_api/0.1.2
-lock_api/0.1.1
-lock_api/0.1.0
-```
-</details>
-
-### get the deps for the current release of a crate as json
+#### list the deps for the latest version as json
 >whatfeatures curl -f false --deps --json | jq .
 <details><summary>output</summary>
 
@@ -326,7 +364,7 @@ lock_api/0.1.0
 ```
 </details>
 
-### get the deps for a specific crate as json
+#### list the deps for a specific version as json
 >whatfeatures curl -f false --deps -v 0.3.0 --json | jq .
 <details><summary>output</summary>
 
@@ -382,4 +420,4 @@ lock_api/0.1.0
   }
 ]
 ```
-<details>
+</details>
