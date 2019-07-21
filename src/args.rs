@@ -16,16 +16,16 @@ pub struct Args {
     pub features: LexicalBool,
 
     #[options(help = "list only the name/version for the crate")]
-    pub only_version: bool,
+    pub short: bool,
 
     #[options(help = "list all versions")]
     pub list: bool, // TODO this should do nothing when --deps is used
 
-    #[options(help = "shows any yanked versions before the latest stable")]
+    #[options(
+        help = "shows any yanked versions before the latest stable",
+        short = "y"
+    )]
     pub show_yanked: bool, // TODO this should do nothing when --deps is used
-
-    #[options(help = "prints results as json")]
-    pub json: bool,
 
     #[options(help = "disables using colors when printing as text")]
     pub no_color: bool,

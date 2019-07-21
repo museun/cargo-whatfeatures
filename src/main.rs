@@ -5,18 +5,17 @@ use yansi::Paint;
 mod args;
 mod crates;
 mod error;
-mod json;
 mod text;
 
 use args::Args;
 use crates::{Dependency, DependencyKind};
 use error::{InternalError, UserError};
 
-use json::{AsJson, Json};
 use text::{AsText, DepState};
 
 pub struct NameVer<'a>(pub &'a str, pub &'a str);
 pub struct YankedNameVer<'a>(pub &'a str, pub &'a str);
+pub struct NoDeps;
 
 fn main() {
     let args = Args::parse_args_default_or_exit();
@@ -26,197 +25,230 @@ fn main() {
         Paint::disable();
     }
 
-    let use_json = args.json;
-    let (mut stdout, mut stderr) = make_stdio(use_json);
-
-    macro_rules! write_format {
-        ($item:expr) => {
-            write_format!($item, &mut stdout, &Default::default())
-        };
-        ($item:expr, $output:expr, $pad:expr) => {
-            if use_json {
-                $item.write_as_json($output)
-            } else {
-                $item.write_as_text($output, $pad)
-            }
-            .expect("write output")
-        };
-        ($item:expr, state=> $state:expr) => {
-            write_format!($item, &mut stdout, $state)
-        };
-    }
+    let (mut stdout, mut stderr) = (std::io::stdout(), std::io::stderr());
 
     macro_rules! report_error {
         ($error:expr) => {{
-            if use_json {
-                $error.write_as_json(&mut stdout)
-            } else {
-                $error.write_as_text(&mut stderr, &Default::default())
-            }
-            .expect("write error");
+            $error
+                .write_as_text(&mut stderr, &Default::default())
+                .expect("write error");
             std::process::exit(1);
+        }};
+
+        (try $res:expr) => {{
+            if let Err(err) = $res {
+                report_error!(err)
+            }
         }};
     }
 
-    let name = &args.name;
+    let name = args.name;
     if name.is_empty() {
         report_error!(UserError::NoNameProvided);
     }
 
-    if !*args.features && !args.deps {
-        report_error!(UserError::MustOutputSomething)
+    match (*args.features, args.deps) {
+        (true, true) => {
+            report_error!(try print_features(
+                name.clone(),
+                args.version.clone(),
+                args.list,
+                args.show_yanked,
+                args.short,
+                &mut stdout
+            ));
+
+            if !args.list {
+                report_error!(try print_deps(name, args.version, false, &mut stdout));
+            }
+        }
+        (false, true) => report_error!(try print_deps(name, args.version, true, &mut stdout)),
+        (true, false) => report_error!(try print_features(
+            name,
+            args.version,
+            args.list,
+            args.show_yanked,
+            args.short,
+            &mut stdout
+        )),
+        (false, false) => report_error!(UserError::MustOutputSomething),
     }
+}
 
-    // TODO get rid of this if soup
-    if *args.features {
-        let versions = crates::lookup_versions(&name).unwrap_or_else(|err| {
-            report_error!(UserError::CannotLookup {
-                name: name.clone(),
-                version: args.version.clone(),
-                error: err,
-            });
-        });
-
-        if versions.is_empty() {
-            report_error!(UserError::NoVersions(name.clone()))
-        }
-
-        if let Some(ver) = &args.version {
-            if let Some(ver) = versions.iter().find(|k| &k.num == ver.as_str()) {
-                write_format!(&ver);
-            } else {
-                report_error!(UserError::InvalidVersion(name.clone(), ver.clone()))
-            }
-        }
-
-        if args.list {
-            for version in versions {
-                if args.only_version {
-                    if version.yanked {
-                        let nv = YankedNameVer(&version.crate_, &version.num);
-                        write_format!(&nv);
-                    } else {
-                        let nv = NameVer(&version.crate_, &version.num);
-                        write_format!(&nv);
-                    }
-                } else {
-                    write_format!(&version);
+fn print_features<W>(
+    name: String,
+    version: Option<String>,
+    list: bool,
+    show_yanked: bool,
+    short: bool,
+    mut writer: W,
+) -> Result<(), UserError>
+where
+    W: Write,
+{
+    if !list && !show_yanked {
+        // if we have a specific version
+        if let Some(version) = version {
+            match crates::lookup_version(&name, &version) {
+                Ok(ref version) if short && version.yanked => {
+                    YankedNameVer(&version.crate_, &version.num)
+                        .write_as_text(&mut writer, &Default::default())
+                        .expect("must be able to write");
                 }
-            }
-            return;
-        }
-
-        if args.version.is_none() {
-            for ver in versions.into_iter() {
-                if !ver.yanked {
-                    if args.only_version {
-                        let nv = NameVer(&ver.crate_, &ver.num);
-                        write_format!(&nv);
-                    } else {
-                        write_format!(&ver);
-                    }
-                    break;
+                Ok(ref version) if short && !version.yanked => {
+                    NameVer(&version.crate_, &version.num)
+                        .write_as_text(&mut writer, &Default::default())
+                        .expect("must be able to write");
                 }
-
-                if args.show_yanked {
-                    if args.only_version {
-                        let nv = YankedNameVer(&ver.crate_, &ver.num);
-                        write_format!(&nv);
-                    } else {
-                        write_format!(&ver);
-                    }
+                Ok(version) => {
+                    version
+                        .write_as_text(&mut writer, &Default::default())
+                        .expect("must be able to write");
                 }
+                Err(..) => return Err(UserError::InvalidVersion(name, version)),
             }
+            return Ok(());
         }
     }
 
-    if !args.deps {
-        return;
-    }
-
-    let ver = match args.version {
-        Some(ver) => ver.clone(),
-        None => {
-            let versions = crates::lookup_versions(&name).unwrap_or_else(|err| {
-                report_error!(UserError::CannotLookup {
-                    name: name.clone(),
-                    version: args.version.clone(),
-                    error: err,
-                });
-            });
-
+    let versions = match crates::lookup_versions(&name) {
+        Ok(versions) => {
             if versions.is_empty() {
-                report_error!(UserError::NoVersions(name.clone()))
+                return Err(UserError::NoVersions(name));
             }
-            match versions.into_iter().skip_while(|k| k.yanked).next() {
-                Some(ver) => ver.num,
-                None => report_error!(UserError::NoVersions(name.clone())),
-            }
+            versions
+        }
+        Err(error) => {
+            return Err(UserError::CannotLookup {
+                name,
+                version,
+                error,
+            })
         }
     };
 
-    let deps = crates::lookup_deps(&name, &ver).unwrap_or_else(|err| {
-        report_error!(UserError::CannotLookup {
-            name: name.clone(),
-            version: Some(ver.clone()),
-            error: err,
-        });
-    });
+    for version in versions {
+        match (short, version.yanked, show_yanked) {
+            (true, true, true) => {
+                YankedNameVer(&version.crate_, &version.num)
+                    .write_as_text(&mut writer, &Default::default())
+                    .expect("must be able to write");
+                continue; // to list all pre-release yanked version
+            }
+            (true, _, _) => {
+                NameVer(&version.crate_, &version.num)
+                    .write_as_text(&mut writer, &Default::default())
+                    .expect("must be able to write");
+            }
+            (false, true, true) | (false, false, ..) => {
+                version
+                    .write_as_text(&mut writer, &Default::default())
+                    .expect("must be able to write");
+                if show_yanked && version.yanked {
+                    continue;
+                }
+            }
+            (.., true, false) => continue,
+        }
+        if !list {
+            break;
+        }
+    }
+    Ok(())
+}
 
-    if deps.is_empty() {
-        report_error!(UserError::InvalidVersion(name.clone(), ver.clone()))
+fn print_deps<W>(
+    name: String,
+    version: Option<String>,
+    show_name: bool,
+    mut writer: W,
+) -> Result<(), UserError>
+where
+    W: Write,
+{
+    let ver = match version {
+        Some(ver) => ver,
+        None => match crates::lookup_versions(&name) {
+            Ok(versions) => match versions.into_iter().skip_while(|k| k.yanked).next() {
+                Some(ver) => ver.num,
+                None => return Err(UserError::NoVersions(name)),
+            },
+            Err(error) => {
+                return Err(UserError::CannotLookup {
+                    name,
+                    version,
+                    error,
+                })
+            }
+        },
+    };
+
+    if show_name {
+        NameVer(&name, &ver)
+            .write_as_text(&mut writer, &Default::default())
+            .expect("must be able to write");
     }
 
-    use std::collections::HashMap;
+    let deps = match crates::lookup_deps(&name, &ver) {
+        Ok(deps) => deps,
+        Err(error) => {
+            return Err(UserError::CannotLookup {
+                name,
+                version: Some(ver),
+                error,
+            })
+        }
+    };
+
+    if deps.is_empty() {
+        NoDeps
+            .write_as_text(&mut writer, &Default::default())
+            .expect("must be able to write");
+        return Ok(());
+    }
+
     let mut deps = deps.into_iter().fold(
-        HashMap::<DependencyKind, Vec<Dependency>>::new(),
+        std::collections::HashMap::<DependencyKind, Vec<Dependency>>::new(),
         |mut map, dep| {
-            map.entry(dep.kind.clone()).or_default().push(dep);
+            map.entry(dep.kind).or_default().push(dep);
             map
         },
     );
 
-    let kinds = &[
+    const KINDS: [DependencyKind; 3] = [
         DependencyKind::Normal,
         DependencyKind::Dev,
         DependencyKind::Build,
     ];
 
     let mut state = DepState::default();
-    for kind in kinds {
+    for kind in &KINDS {
         if let Some(dep) = deps.get(&kind) {
             let (left, right) = dep
                 .iter()
                 .fold((state.left, state.right), |(left, right), d| {
                     (width(left, &d.crate_id), width(right, &d.req))
                 });
-
             state.left = left;
             state.right = right;
         }
     }
 
-    write_format!(NameVer(&name, &ver));
-    for kind in kinds {
+    for kind in &KINDS {
         if let Some(ref mut deps) = deps.get_mut(&kind) {
             state.pad = 2;
-            write_format!(&kind, state=>&state);
+            kind.write_as_text(&mut writer, &state)
+                .expect("must be able to write");
             state.pad = 4;
             deps.sort_unstable_by(|l, r| l.crate_id.cmp(&r.crate_id));
             for dep in deps.iter() {
-                write_format!(&dep, state=>&state);
+                dep.write_as_text(&mut writer, &state)
+                    .expect("must be able to write");
             }
         }
     }
-}
 
-fn make_stdio(use_json: bool) -> (Box<dyn Write>, Box<dyn Write>) {
-    let (stdout, stderr) = (std::io::stdout(), std::io::stderr());
-    if use_json {
-        (Box::new(Json::new(stdout)), Box::new(Json::new(stderr)))
-    } else {
-        (Box::new(stdout), Box::new(stderr))
-    }
+    Ok(())
 }
 
 #[inline]

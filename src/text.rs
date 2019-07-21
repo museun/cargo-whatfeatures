@@ -3,7 +3,7 @@ use yansi::{Color, Paint};
 
 use super::crates::{Dependency, DependencyKind, Version};
 use super::error::UserError;
-use super::{NameVer, YankedNameVer};
+use super::{NameVer, NoDeps, YankedNameVer};
 
 pub trait AsText<W> {
     type State: Default;
@@ -38,6 +38,17 @@ impl<'a, W: Write> AsText<W> for YankedNameVer<'a> {
             Paint::new("yanked").fg(Color::Red),
             name,
             Paint::new(&ver).fg(Color::Yellow)
+        )
+    }
+}
+
+impl<W: Write> AsText<W> for NoDeps {
+    type State = NoTextState;
+    fn write_as_text(&self, writer: &mut W, _state: &Self::State) -> Result<()> {
+        writeln!(
+            writer,
+            "  {}",
+            Paint::new("no dependencies").fg(Color::Magenta)
         )
     }
 }
@@ -139,7 +150,7 @@ impl<W: Write> AsText<W> for Version {
             writeln!(
                 writer,
                 "{}",
-                Paint::new("  no default features").fg(Color::Red)
+                Paint::new("    no default features").fg(Color::Magenta)
             )?;
         }
 

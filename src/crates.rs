@@ -29,7 +29,7 @@ pub struct Dependency {
     pub kind: DependencyKind,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyKind {
     Normal,
@@ -48,6 +48,19 @@ pub fn lookup_deps(name: &str, ver: &str) -> Result<Vec<Dependency>> {
         name, ver,
     ))
     .map(|item| item.dependencies)
+}
+
+pub fn lookup_version(crate_name: &str, version: &str) -> Result<Version> {
+    #[derive(Deserialize)]
+    struct Wrap {
+        version: Version,
+    }
+
+    fetch::<Wrap>(&format!(
+        "https://crates.io/api/v1/crates/{}/{}", //
+        crate_name, version
+    ))
+    .map(|item| item.version)
 }
 
 pub fn lookup_versions(crate_name: &str) -> Result<Vec<Version>> {
@@ -72,7 +85,6 @@ where
         .send()
         .map_err(InternalError::Http)?;
 
-    resp.text()
-        .map_err(InternalError::Http)
-        .and_then(|body| serde_json::from_str(&body).map_err(InternalError::Json))
+    let body = resp.text().map_err(InternalError::Http)?;
+    serde_json::from_str(&body).map_err(InternalError::Json)
 }
