@@ -195,13 +195,13 @@ impl<W: Write> AsText<W> for UserError {
                 err_msg,
                 Paint::new(&name).fg(Color::Green)
             ),
-            NoVersions(name) => writeln!(
+            NoVersions { name } => writeln!(
                 writer,
                 "{}: no versions published for '{}",
                 err_msg,
                 Paint::new(&name).fg(Color::Green),
             ),
-            InvalidVersion(name, version) => writeln!(
+            InvalidVersion { name, version } => writeln!(
                 writer,
                 "{}: invalid version '{}' for '{}'",
                 err_msg,

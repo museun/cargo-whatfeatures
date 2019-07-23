@@ -6,8 +6,13 @@ pub enum UserError {
         version: Option<String>,
         error: InternalError,
     },
-    NoVersions(String),
-    InvalidVersion(String, String),
+    NoVersions {
+        name: String,
+    },
+    InvalidVersion {
+        name: String,
+        version: String,
+    },
     MustOutputSomething,
 }
 

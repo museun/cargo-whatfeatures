@@ -92,7 +92,7 @@ where
                         .write_as_text(&mut writer, &Default::default())
                         .expect("must be able to write");
                 }
-                Err(..) => return Err(UserError::InvalidVersion(name, version)),
+                Err(..) => return Err(UserError::InvalidVersion { name, version }),
             }
             return Ok(());
         }
@@ -101,7 +101,7 @@ where
     let versions = match crates::lookup_versions(&name) {
         Ok(versions) => {
             if versions.is_empty() {
-                return Err(UserError::NoVersions(name));
+                return Err(UserError::NoVersions { name });
             }
             versions
         }
@@ -158,7 +158,7 @@ where
         None => match crates::lookup_versions(&name) {
             Ok(versions) => match versions.into_iter().skip_while(|k| k.yanked).next() {
                 Some(ver) => ver.num,
-                None => return Err(UserError::NoVersions(name)),
+                None => return Err(UserError::NoVersions { name }),
             },
             Err(error) => {
                 return Err(UserError::CannotLookup {
