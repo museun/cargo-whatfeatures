@@ -4,7 +4,6 @@ use gumdrop::Options;
 use yansi::Paint;
 
 use whatfeatures::output::AsText as _;
-
 use whatfeatures::{crates, error, output};
 
 mod args;
