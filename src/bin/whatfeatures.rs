@@ -4,63 +4,8 @@ use yansi::Paint;
 
 use whatfeatures::*;
 
-fn main() {
-    let args = Args::parse_args_default_or_exit();
-
-    let disable_colors = std::env::var("NO_COLOR").is_ok();
-    if disable_colors || args.no_color || cfg!(windows) && !Paint::enable_windows_ascii() {
-        Paint::disable();
-    }
-
-    let (mut stdout, mut stderr) = (std::io::stdout(), std::io::stderr());
-
-    macro_rules! report_error {
-        ($error:expr) => {{
-            $error
-                .write_as_text(&mut stderr, &Default::default())
-                .expect("write error");
-            std::process::exit(1);
-        }};
-
-        (try $res:expr) => {{
-            if let Err(err) = $res {
-                report_error!(err)
-            }
-        }};
-    }
-
-    let name = args.name;
-    if name.is_empty() {
-        report_error!(UserError::NoNameProvided);
-    }
-
-    match (*args.features, args.deps) {
-        (true, true) => {
-            report_error!(try print_features(
-                name.clone(),
-                args.version.clone(),
-                args.list,
-                args.show_yanked,
-                args.short,
-                &mut stdout
-            ));
-
-            if !args.list {
-                report_error!(try print_deps(name, args.version, false, &mut stdout));
-            }
-        }
-        (false, true) => report_error!(try print_deps(name, args.version, true, &mut stdout)),
-        (true, false) => report_error!(try print_features(
-            name,
-            args.version,
-            args.list,
-            args.show_yanked,
-            args.short,
-            &mut stdout
-        )),
-        (false, false) => report_error!(UserError::MustOutputSomething),
-    }
-}
+mod args;
+use args::Args;
 
 fn print_features<W>(
     name: String,
@@ -241,4 +186,62 @@ where
 #[inline]
 fn width(old: usize, s: &str) -> usize {
     std::cmp::max(old, s.chars().map(|c| c.len_utf8()).sum())
+}
+
+fn main() {
+    let args = Args::parse_args_default_or_exit();
+
+    let disable_colors = std::env::var("NO_COLOR").is_ok();
+    if disable_colors || args.no_color || cfg!(windows) && !Paint::enable_windows_ascii() {
+        Paint::disable();
+    }
+
+    let (mut stdout, mut stderr) = (std::io::stdout(), std::io::stderr());
+
+    macro_rules! report_error {
+        ($error:expr) => {{
+            $error
+                .write_as_text(&mut stderr, &Default::default())
+                .expect("write error");
+            std::process::exit(1);
+        }};
+
+        (try $res:expr) => {{
+            if let Err(err) = $res {
+                report_error!(err)
+            }
+        }};
+    }
+
+    let name = args.name;
+    if name.is_empty() {
+        report_error!(UserError::NoNameProvided);
+    }
+
+    match (*args.features, args.deps) {
+        (true, true) => {
+            report_error!(try print_features(
+                name.clone(),
+                args.version.clone(),
+                args.list,
+                args.show_yanked,
+                args.short,
+                &mut stdout
+            ));
+
+            if !args.list {
+                report_error!(try print_deps(name, args.version, false, &mut stdout));
+            }
+        }
+        (false, true) => report_error!(try print_deps(name, args.version, true, &mut stdout)),
+        (true, false) => report_error!(try print_features(
+            name,
+            args.version,
+            args.list,
+            args.show_yanked,
+            args.short,
+            &mut stdout
+        )),
+        (false, false) => report_error!(UserError::MustOutputSomething),
+    }
 }
