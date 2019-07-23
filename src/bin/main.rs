@@ -3,7 +3,7 @@ use std::io::Write;
 use gumdrop::Options;
 use yansi::Paint;
 
-use whatfeatures::*;
+use whatfeatures::{crates::*, error::*, output::*, *};
 
 mod args;
 use args::Args;

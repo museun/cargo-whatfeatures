@@ -1,10 +1,11 @@
-use crate::InternalError;
+use crate::error::InternalError;
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 type Result<T> = std::result::Result<T, InternalError>;
 
+/// A crate, including its version
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Version {
     pub id: u64,
@@ -15,6 +16,7 @@ pub struct Version {
     pub yanked: bool,
 }
 
+/// A Dependency of a crate
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Dependency {
     pub id: usize,
@@ -29,6 +31,7 @@ pub struct Dependency {
     pub kind: DependencyKind,
 }
 
+/// What kind of dependency it is
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyKind {
@@ -37,7 +40,8 @@ pub enum DependencyKind {
     Build,
 }
 
-pub fn lookup_deps(name: &str, ver: &str) -> Result<Vec<Dependency>> {
+/// Look up all of the deps. for `crate_name` and `ver`
+pub fn lookup_deps(crate_name: &str, ver: &str) -> Result<Vec<Dependency>> {
     #[derive(Deserialize)]
     struct Wrap {
         dependencies: Vec<Dependency>,
@@ -45,11 +49,12 @@ pub fn lookup_deps(name: &str, ver: &str) -> Result<Vec<Dependency>> {
 
     fetch::<Wrap>(&format!(
         "https://crates.io/api/v1/crates/{}/{}/dependencies",
-        name, ver,
+        crate_name, ver,
     ))
     .map(|item| item.dependencies)
 }
 
+/// Look up a specific `version` of `crate_name`
 pub fn lookup_version(crate_name: &str, version: &str) -> Result<Version> {
     #[derive(Deserialize)]
     struct Wrap {
@@ -63,6 +68,7 @@ pub fn lookup_version(crate_name: &str, version: &str) -> Result<Version> {
     .map(|item| item.version)
 }
 
+/// Lookup all versions for `crate_name`
 pub fn lookup_versions(crate_name: &str) -> Result<Vec<Version>> {
     #[derive(Deserialize)]
     struct Wrap {

@@ -1,15 +1,19 @@
 use std::io::{Result, Write};
 use yansi::{Color, Paint};
 
-use super::crates::{Dependency, DependencyKind, Version};
-use super::error::UserError;
-use super::{NameVer, NoDeps, YankedNameVer};
+use crate::crates::{Dependency, DependencyKind, Version};
+use crate::error::UserError;
+use crate::output::{NameVer, NoDeps, YankedNameVer};
 
+/// Trait to be able to write some type to a writer, as text
+///
+/// This tries to use color if its been enabled
 pub trait AsText<W> {
     type State: Default;
     fn write_as_text(&self, writer: &mut W, state: &Self::State) -> Result<()>;
 }
 
+/// State used for padding of dependencies
 #[derive(Copy, Clone, Debug, Default)]
 pub struct DepState {
     pub pad: usize,
