@@ -6,7 +6,7 @@
   * [Features](#features)
     - [list the features for the latest version](#list-the-features-for-the-latest-version)
     - [list the features for a specific version](#list-the-features-for-a-specific-version)
-    - [display yanked releases that are newer than the current](#display-yanked-releases-that-are-newer-than-the-current)
+    - [list all versions and features for a crate](#list-all-versions-and-features-for-a-crate)
   * [Simple listing](#simple-listing)
     - [list all name and version pairs](#list-all-name-and-version-pairs)
     - [list all features for all versions](#list-all-features-for-all-versions)
@@ -68,15 +68,6 @@ twitchchat/0.5.0
     default: all
     all: serde_hashbrown, parking_lot
     serde_hashbrown: serde, hashbrown/serde
-```
-
-#### list the features for the latest version as json
->whatfeatures markings --list
-```
-markings/0.1.1
-    no default features
-markings/0.1.0
-    no default features
 ```
 
 #### display yanked releases that are newer than the current
