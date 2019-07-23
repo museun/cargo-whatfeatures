@@ -1,10 +1,19 @@
 [package]
+edition = "2018"
 name = "whatfeatures"
 version = "0.5.0"
 authors = ["museun <museun@outlook.com>"]
-edition = "2018"
-
+repository = "https://github.com/museun/whatfeatures"
+description = "display features, versions and dependencies of crates"
+keywords = [ "features", "dependencies", "crates" ]
+license = "0BSD"
+readme = "README.md"
 build = "build.rs"
+autobins = false
+
+[[bin]]
+name = "whatfeatures"
+path = "src/bin/main.rs"
 
 [dependencies]
 serde = { version = "1.0.97", features = ["derive"] }

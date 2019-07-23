@@ -1,5 +1,6 @@
-use gumdrop::Options;
 use std::io::Write;
+
+use gumdrop::Options;
 use yansi::Paint;
 
 use whatfeatures::*;
