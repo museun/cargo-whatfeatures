@@ -2,20 +2,7 @@ use gumdrop::Options;
 use std::io::Write;
 use yansi::Paint;
 
-mod args;
-mod crates;
-mod error;
-mod text;
-
-use args::Args;
-use crates::{Dependency, DependencyKind};
-use error::{InternalError, UserError};
-
-use text::{AsText, DepState};
-
-pub struct NameVer<'a>(pub &'a str, pub &'a str);
-pub struct YankedNameVer<'a>(pub &'a str, pub &'a str);
-pub struct NoDeps;
+use whatfeatures::*;
 
 fn main() {
     let args = Args::parse_args_default_or_exit();
