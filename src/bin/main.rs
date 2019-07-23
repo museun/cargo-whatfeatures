@@ -3,10 +3,14 @@ use std::io::Write;
 use gumdrop::Options;
 use yansi::Paint;
 
-use whatfeatures::{crates::*, error::*, output::*, *};
+use whatfeatures::output::AsText as _;
+
+use whatfeatures::{crates, error, output};
 
 mod args;
 use args::Args;
+
+type Result = std::result::Result<(), error::UserError>;
 
 fn print_features<W>(
     name: String,
@@ -15,7 +19,7 @@ fn print_features<W>(
     show_yanked: bool,
     short: bool,
     mut writer: W,
-) -> Result<(), UserError>
+) -> Result
 where
     W: Write,
 {
@@ -24,12 +28,12 @@ where
         if let Some(version) = version {
             match crates::lookup_version(&name, &version) {
                 Ok(ref version) if short && version.yanked => {
-                    YankedNameVer(&version.crate_, &version.num)
+                    output::YankedNameVer(&version.crate_, &version.num)
                         .write_as_text(&mut writer, &Default::default())
                         .expect("must be able to write");
                 }
                 Ok(ref version) if short && !version.yanked => {
-                    NameVer(&version.crate_, &version.num)
+                    output::NameVer(&version.crate_, &version.num)
                         .write_as_text(&mut writer, &Default::default())
                         .expect("must be able to write");
                 }
@@ -38,7 +42,7 @@ where
                         .write_as_text(&mut writer, &Default::default())
                         .expect("must be able to write");
                 }
-                Err(..) => return Err(UserError::InvalidVersion { name, version }),
+                Err(..) => return Err(error::UserError::InvalidVersion { name, version }),
             }
             return Ok(());
         }
@@ -47,12 +51,12 @@ where
     let versions = match crates::lookup_versions(&name) {
         Ok(versions) => {
             if versions.is_empty() {
-                return Err(UserError::NoVersions { name });
+                return Err(error::UserError::NoVersions { name });
             }
             versions
         }
         Err(error) => {
-            return Err(UserError::CannotLookup {
+            return Err(error::UserError::CannotLookup {
                 name,
                 version,
                 error,
@@ -63,13 +67,13 @@ where
     for version in versions {
         match (short, version.yanked, show_yanked) {
             (true, true, true) => {
-                YankedNameVer(&version.crate_, &version.num)
+                output::YankedNameVer(&version.crate_, &version.num)
                     .write_as_text(&mut writer, &Default::default())
                     .expect("must be able to write");
                 continue; // to list all pre-release yanked version
             }
             (true, _, _) => {
-                NameVer(&version.crate_, &version.num)
+                output::NameVer(&version.crate_, &version.num)
                     .write_as_text(&mut writer, &Default::default())
                     .expect("must be able to write");
             }
@@ -90,12 +94,7 @@ where
     Ok(())
 }
 
-fn print_deps<W>(
-    name: String,
-    version: Option<String>,
-    show_name: bool,
-    mut writer: W,
-) -> Result<(), UserError>
+fn print_deps<W>(name: String, version: Option<String>, show_name: bool, mut writer: W) -> Result
 where
     W: Write,
 {
@@ -104,10 +103,10 @@ where
         None => match crates::lookup_versions(&name) {
             Ok(versions) => match versions.into_iter().skip_while(|k| k.yanked).next() {
                 Some(ver) => ver.num,
-                None => return Err(UserError::NoVersions { name }),
+                None => return Err(error::UserError::NoVersions { name }),
             },
             Err(error) => {
-                return Err(UserError::CannotLookup {
+                return Err(error::UserError::CannotLookup {
                     name,
                     version,
                     error,
@@ -117,7 +116,7 @@ where
     };
 
     if show_name {
-        NameVer(&name, &ver)
+        output::NameVer(&name, &ver)
             .write_as_text(&mut writer, &Default::default())
             .expect("must be able to write");
     }
@@ -125,7 +124,7 @@ where
     let deps = match crates::lookup_deps(&name, &ver) {
         Ok(deps) => deps,
         Err(error) => {
-            return Err(UserError::CannotLookup {
+            return Err(error::UserError::CannotLookup {
                 name,
                 version: Some(ver),
                 error,
@@ -134,27 +133,26 @@ where
     };
 
     if deps.is_empty() {
-        NoDeps
+        output::NoDeps
             .write_as_text(&mut writer, &Default::default())
             .expect("must be able to write");
         return Ok(());
     }
 
-    let mut deps = deps.into_iter().fold(
-        std::collections::HashMap::<DependencyKind, Vec<Dependency>>::new(),
-        |mut map, dep| {
-            map.entry(dep.kind).or_default().push(dep);
-            map
-        },
-    );
+    use std::collections::HashMap;
+    type Map = HashMap<crates::DependencyKind, Vec<crates::Dependency>>;
+    let mut deps = deps.into_iter().fold(Map::new(), |mut map, dep| {
+        map.entry(dep.kind).or_default().push(dep);
+        map
+    });
 
-    const KINDS: [DependencyKind; 3] = [
-        DependencyKind::Normal,
-        DependencyKind::Dev,
-        DependencyKind::Build,
+    const KINDS: [crates::DependencyKind; 3] = [
+        crates::DependencyKind::Normal,
+        crates::DependencyKind::Dev,
+        crates::DependencyKind::Build,
     ];
 
-    let mut state = DepState::default();
+    let mut state = output::DepState::default();
     for kind in &KINDS {
         if let Some(dep) = deps.get(&kind) {
             let (left, right) = dep
@@ -216,7 +214,7 @@ fn main() {
 
     let name = args.name;
     if name.is_empty() {
-        report_error!(UserError::NoNameProvided);
+        report_error!(error::UserError::NoNameProvided);
     }
 
     match (*args.features, args.deps) {
@@ -243,6 +241,6 @@ fn main() {
             args.short,
             &mut stdout
         )),
-        (false, false) => report_error!(UserError::MustOutputSomething),
+        (false, false) => report_error!(error::UserError::MustOutputSomething),
     }
 }

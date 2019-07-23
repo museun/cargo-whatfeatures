@@ -26,7 +26,6 @@ pub struct Dependency {
     pub optional: bool,
     pub default_features: bool,
     pub features: Vec<String>,
-    // TODO parse this to match the semantics of the target section in the manifest
     pub target: Option<String>,
     pub kind: DependencyKind,
 }
