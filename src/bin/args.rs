@@ -3,36 +3,45 @@ use lexical_bool::LexicalBool;
 
 #[derive(Debug, Clone, Options)]
 pub struct Args {
-    #[options(help = "display this message")]
+    #[options(help = "Displays this help message")]
     pub help: bool,
 
-    #[options(help = "look up the dependencies for this crate")]
+    #[options(help = "Display dependencies for this crate")]
     pub deps: bool,
 
-    #[options(help = "a specific version")]
+    #[options(help = "A specific version to lookup. e.g. 0.7.1", meta = "SEMVER")]
     pub version: Option<String>,
 
-    #[options(help = "displays the features", meta = "bool", default = "true")]
+    #[options(
+        help = "Display the features for the crate",
+        meta = "bool",
+        default = "true"
+    )]
     pub features: LexicalBool,
 
-    #[options(help = "list only the name/version for the crate")]
+    #[options(help = "Only list the name and version, rather than extended info")]
     pub short: bool,
 
-    #[options(help = "list all versions")]
-    pub list: bool, // TODO this should do nothing when --deps is used
+    #[options(help = "List all versions for the crate")]
+    pub list: bool,
 
     #[options(
-        help = "shows any yanked versions before the latest stable",
+        help = "Shows any yanked versions. Defaults to hiding them",
         short = "y"
     )]
-    pub show_yanked: bool, // TODO this should do nothing when --deps is used
+    pub show_yanked: bool,
 
-    #[options(help = "disables using colors when printing as text")]
-    pub no_color: bool,
+    #[options(
+        help = "Attempts to use colors when printing as text",
+        meta = "bool",
+        default = "true"
+    )]
+    pub color: LexicalBool,
 
-    #[options(help = "tries to use colors when printing as text", default = "true")]
-    pub color: bool,
+    #[options(help = "Use JSON as the output format. Defaults to a textual format")]
+    pub json: bool,
 
+    #[options(help = "The name of the crate to retrieve information for")]
     #[options(free)]
     pub name: String,
 }

@@ -1,12 +1,12 @@
 use crate::error::InternalError;
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 type Result<T> = std::result::Result<T, InternalError>;
 
 /// A crate, including its version
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Version {
     pub id: u64,
     #[serde(rename = "crate")]
@@ -17,7 +17,7 @@ pub struct Version {
 }
 
 /// A Dependency of a crate
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Dependency {
     pub id: usize,
     pub version_id: usize,
@@ -31,7 +31,7 @@ pub struct Dependency {
 }
 
 /// What kind of dependency it is
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyKind {
     Normal,
