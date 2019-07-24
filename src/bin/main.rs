@@ -51,16 +51,8 @@ fn list_all_versions<W: Write>(
     }
 }
 
-fn display_specific<W: Write>(
-    args: &Args,
-    version: &str,
-    output: &mut Output<'_, W>,
-) -> Result<(), UserError> {
-    let version =
-        crates::lookup_version(&args.name, &version).map_err(|_| UserError::InvalidVersion {
-            name: args.name.clone(),
-            version: version.to_string(),
-        })?;
+fn display_features<W: Write>(args: &Args, output: &mut Output<'_, W>) -> Result<(), UserError> {
+    let version = get_version(&args)?;
 
     macro_rules! create_and_output {
         ($ty:ident) => {{
@@ -82,34 +74,14 @@ fn display_specific<W: Write>(
 }
 
 fn display_deps<W: Write>(args: &Args, output: &mut Output<'_, W>) -> Result<(), UserError> {
-    fn get_deps(name: &str, version: &str) -> Result<Vec<crates::Dependency>, UserError> {
-        crates::lookup_deps(name, version).map_err(|err| UserError::CannotLookup {
-            name: name.to_string(),
-            version: Some(version.to_string()),
+    let version = get_version(&args)?;
+    let deps = crates::lookup_deps(&version.crate_, &version.num).map_err(|err| {
+        UserError::CannotLookup {
+            name: version.crate_.to_string(),
+            version: Some(version.num.to_string()),
             error: err.to_string(),
-        })
-    }
-
-    let (deps, version) = if let Some(ver) = &args.version {
-        let version = crates::lookup_version(&args.name, &ver) //
-            .map_err(|_| UserError::InvalidVersion {
-                name: args.name.clone(),
-                version: ver.to_string(),
-            })?;
-        (get_deps(&args.name, &ver)?, version)
-    } else {
-        let version = crates::lookup_versions(&args.name)
-            .ok()
-            .and_then(|vers| {
-                vers.into_iter()
-                    .skip_while(|k| !args.show_yanked && k.yanked)
-                    .next()
-            })
-            .ok_or_else(|| UserError::NoVersions {
-                name: args.name.clone(),
-            })?;
-        (get_deps(&version.crate_, &version.num)?, version)
-    };
+        }
+    })?;
 
     macro_rules! create_and_output {
         ($ty:ident) => {{
@@ -127,6 +99,27 @@ fn display_deps<W: Write>(args: &Args, output: &mut Output<'_, W>) -> Result<(),
         create_and_output!(CompositeModel)
     } else {
         create_and_output!(DependencyModel)
+    }
+}
+
+fn get_version(args: &Args) -> Result<crates::Version, UserError> {
+    if let Some(ver) = &args.version {
+        crates::lookup_version(&args.name, &ver) //
+            .map_err(|_| UserError::InvalidVersion {
+                name: args.name.clone(),
+                version: ver.to_string(),
+            })
+    } else {
+        crates::lookup_versions(&args.name)
+            .ok()
+            .and_then(|vers| {
+                vers.into_iter()
+                    .skip_while(|k| !args.show_yanked && k.yanked)
+                    .next()
+            })
+            .ok_or_else(|| UserError::NoVersions {
+                name: args.name.clone(),
+            })
     }
 }
 
@@ -149,6 +142,11 @@ fn ensure_sane_args(args: &Args) {
 
     if !*args.features && !args.deps {
         let error = UserError::InvalidArgs(&["!features", "!deps"]);
+        maybe_abort(args, Err(error));
+    }
+
+    if args.short && args.deps {
+        let error = UserError::InvalidArgs(&["short", "deps"]);
         maybe_abort(args, Err(error));
     }
 }
@@ -180,12 +178,9 @@ fn main() {
             maybe_abort(&args, list_all_versions(&args, &mut output));
             return;
         }
-
-        if let Some(version) = &args.version {
-            maybe_abort(&args, display_specific(&args, &version, &mut output));
-            if !args.deps {
-                return;
-            }
+        if !args.deps {
+            maybe_abort(&args, display_features(&args, &mut output));
+            return;
         }
     }
     if args.deps {

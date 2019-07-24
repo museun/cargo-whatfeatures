@@ -31,18 +31,18 @@ cargo install --path . -f
 Usage: whatfeatures [OPTIONS]
 
 Positional arguments:
-  name
+  name                  The name of the crate to retrieve information for
 
 Optional arguments:
-  -h, --help             display this message
-  -d, --deps             look up the dependencies for this crate
-  -v, --version VERSION  a specific version
-  -f, --features bool    displays the features (default: true)
-  -s, --short            list only the name/version for the crate
-  -l, --list             list all versions
-  -y, --show-yanked      shows any yanked versions before the latest stable
-  -n, --no-color         disables using colors when printing as text
-  -c, --color            tries to use colors when printing as text (default: true)
+  -h, --help            Displays this help message
+  -d, --deps            Display dependencies for this crate
+  -v, --version SEMVER  A specific version to lookup. e.g. 0.7.1
+  -f, --features bool   Display the features for the crate (default: true)
+  -s, --short           Only list the name and version, rather than extended info
+  -l, --list            List all versions for the crate
+  -y, --show-yanked     Shows any yanked versions. Defaults to hiding them
+  -c, --color bool      Attempts to use colors when printing as text (default: true)
+  -j, --json            Use JSON as the output format. Defaults to a textual format
 ```
 
 This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.

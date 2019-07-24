@@ -58,7 +58,7 @@ impl TextRender for crate::error::UserError {
         match self {
             InvalidArgs(args) => writeln!(
                 output,
-                "{}: invalid args: {}",
+                "{}: invalid argument combination: {}",
                 red("error"),
                 args.iter().fold(String::new(), |mut a, s| {
                     if !a.is_empty() {
