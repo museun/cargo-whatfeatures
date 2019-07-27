@@ -252,8 +252,7 @@ impl<'a> TextRender for output::DependencyModel<'a> {
                 Build => writeln!(output, "{}{}", pad, red(&"build"))?,
             };
 
-            let (ok, opt): (Vec<_>, Vec<_>) =
-                deps.into_iter().partition(|k| k.optional || kind != Normal);
+            let (ok, opt): (Vec<_>, Vec<_>) = deps.into_iter().partition(|k| !k.optional);
 
             for dep in ok {
                 let target = dep
