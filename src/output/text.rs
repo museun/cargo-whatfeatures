@@ -6,6 +6,9 @@ use std::io::Write;
 
 use yansi::{Color, Paint};
 
+// TODO nake this configurable
+const MAX_SIZE: usize = 80;
+
 macro_rules! simple_colors {
     ($($ident:ident => $color:ident),* $(,)?) => {
         $( #[allow(dead_code)] #[inline]
@@ -130,12 +133,26 @@ impl<'a> TextRender for output::FeaturesModel<'a> {
             .collect();
 
         let pad = " ".repeat(depth + 2);
+
         if let Some(default) = map.get("default") {
             if !default.is_empty() {
                 write!(output, "{}{}: ", pad, cyan("default"))?;
-                // TODO determine colors to use for this
-                print_list(output, &default, Color::Unset, Color::Unset)?;
-                writeln!(output)?;
+                let len = pad.len() + "default: ".len();
+                let (mut max, list) =
+                    BoundingBox::new(default.as_slice()).display(MAX_SIZE.saturating_sub(len));
+                for (i, line) in list.iter().enumerate() {
+                    if i > 0 {
+                        write!(output, "{: <len$}", " ", len = len)?;
+                    }
+                    for word in line {
+                        max -= 1;
+                        write!(output, "{}", word)?;
+                        if max > 0 {
+                            write!(output, ", ")?;
+                        }
+                    }
+                    writeln!(output)?;
+                }
             } else {
                 writeln!(output, "{}{}", pad, magenta("no default features"))?
             }
@@ -147,13 +164,30 @@ impl<'a> TextRender for output::FeaturesModel<'a> {
             if k == "default" {
                 continue;
             }
+
             write!(output, "{}{}", pad, cyan(k))?;
-            if !v.is_empty() {
-                write!(output, ": ")?;
-                // TODO determine colors to use for this
-                print_list(output, &v, Color::Unset, Color::Unset)?;
+            if v.is_empty() {
+                writeln!(output)?;
+                continue;
             }
-            writeln!(output)?;
+
+            write!(output, ": ")?;
+            let len = pad.len() + k.len() + 2;
+            let (mut max, list) =
+                BoundingBox::new(v.as_slice()).display(MAX_SIZE.saturating_sub(len));
+            for (i, line) in list.iter().enumerate() {
+                if i > 0 {
+                    write!(output, "{: <len$}", " ", len = len)?;
+                }
+                for word in line {
+                    max -= 1;
+                    write!(output, "{}", word)?;
+                    if max > 0 {
+                        write!(output, ", ")?;
+                    }
+                }
+                writeln!(output)?;
+            }
         }
 
         Ok(())
@@ -175,19 +209,7 @@ impl<'a> TextRender for output::DependencyModel<'a> {
         let pad2 = " ".repeat(depth + 4);
         let pad3 = " ".repeat(depth + 6);
 
-        #[derive(Default)]
-        struct Widths {
-            name: usize,
-            opt: usize,
-            req: usize,
-        }
-
         let mut sorted: BTreeMap<_, _> = self.dependencies.clone().into_iter().collect();
-
-        // this
-        // is
-        // a
-        // mess
         let widths = columns(
             3,
             sorted
@@ -204,18 +226,19 @@ impl<'a> TextRender for output::DependencyModel<'a> {
                         dep.req.as_str(),
                     ]
                 }),
-        )
-        .into_iter()
-        .enumerate()
-        .fold(Widths::default(), |mut w, (i, a)| {
-            match i {
-                0 => w.name = a,
-                1 => w.opt = a,
-                2 => w.req = a,
-                _ => unreachable!(),
-            }
-            w
-        });
+        );
+
+        struct Widths {
+            name: usize,
+            opt: usize,
+            req: usize,
+        }
+
+        let widths = Widths {
+            name: widths[0],
+            opt: widths[1],
+            req: widths[2],
+        };
 
         use crate::crates::DependencyKind::*;
         for (kind, deps) in sorted {
@@ -247,12 +270,24 @@ impl<'a> TextRender for output::DependencyModel<'a> {
                 )?;
 
                 if dep.default_features && !dep.features.is_empty() {
-                    writeln!(
-                        output,
-                        "{}- features [{}]",
-                        pad3, // TODO better naming
-                        red(dep.features.join(", "))
-                    )?;
+                    write!(output, "{}- {}: ", pad3, blue("features"))?;
+                    let len = pad3.len() + 2 + "features: ".len();
+                    let (mut max, list) =
+                        BoundingBox::new(&dep.features).display(MAX_SIZE.saturating_sub(len));
+
+                    for (i, line) in list.iter().enumerate() {
+                        if i > 0 {
+                            write!(output, "{: <len$}", " ", len = len)?;
+                        }
+                        for word in line {
+                            max -= 1;
+                            write!(output, "{}", word)?;
+                            if max > 0 {
+                                write!(output, ", ")?;
+                            }
+                        }
+                        writeln!(output)?;
+                    }
                 }
             }
 
@@ -280,13 +315,24 @@ impl<'a> TextRender for output::DependencyModel<'a> {
                 )?;
 
                 if dep.default_features && !dep.features.is_empty() {
-                    writeln!(
-                        output,
-                        "{}{}- features [{}]",
-                        pad,  // TODO better naming
-                        pad2, // TODO better naming
-                        red(dep.features.join(", "))
-                    )?;
+                    write!(output, "{}{}- {}: ", pad, pad2, blue("features"))?;
+                    let len = pad.len() + pad2.len() + 2 + "features: ".len();
+                    let (mut max, list) =
+                        BoundingBox::new(&dep.features).display(MAX_SIZE.saturating_sub(len));
+
+                    for (i, line) in list.iter().enumerate() {
+                        if i > 0 {
+                            write!(output, "{: <len$}", " ", len = len)?;
+                        }
+                        for word in line {
+                            max -= 1;
+                            write!(output, "{}", word)?;
+                            if max > 0 {
+                                write!(output, ", ")?;
+                            }
+                        }
+                        writeln!(output)?;
+                    }
                 }
             }
         }
@@ -345,23 +391,56 @@ impl<'a> TextRender for output::FeaturesListModel<'a> {
     }
 }
 
-// TODO bounding box
-// TODO max per line
-// TODO justification
-fn print_list<W: Write>(
-    w: &mut W,
-    list: &[String],
-    main: Color,
-    sep: Color,
-) -> std::io::Result<()> {
-    let sep = Paint::new(",").fg(sep);
-    for (i, e) in list.iter().enumerate() {
-        if i > 0 && i < list.len() {
-            write!(w, "{} ", sep)?;
-        }
-        write!(w, "{}", Paint::new(&e).fg(main))?;
+trait Len {
+    fn length(&self) -> usize;
+}
+
+impl Len for str {
+    fn length(&self) -> usize {
+        self.len()
     }
-    Ok(())
+}
+impl Len for &str {
+    fn length(&self) -> usize {
+        self.len()
+    }
+}
+impl Len for String {
+    fn length(&self) -> usize {
+        self.len()
+    }
+}
+
+struct BoundingBox<'a, T> {
+    buf: &'a [T],
+}
+impl<'a, T: Len> BoundingBox<'a, T> {
+    pub fn new(buf: &'a [T]) -> Self {
+        Self { buf }
+    }
+
+    pub fn display(self, width: usize) -> (usize, Vec<Vec<&'a T>>) {
+        let mut vec = vec![];
+        let mut temp = vec![];
+        let mut count = 0;
+
+        let mut budget = width;
+        for n in self.buf {
+            if n.length() > budget {
+                if !temp.is_empty() {
+                    vec.push(std::mem::replace(&mut temp, vec![]));
+                }
+                budget = width;
+            }
+            budget = budget.saturating_sub(n.length());
+            temp.push(n);
+            count += 1;
+        }
+        if !temp.is_empty() {
+            vec.push(temp)
+        }
+        (count, vec)
+    }
 }
 
 #[derive(Copy, Clone)]

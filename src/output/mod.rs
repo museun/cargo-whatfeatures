@@ -100,9 +100,12 @@ impl<'a> SimpleListModel<'a> {
     pub fn new(list: Vec<SimpleModel<'a>>) -> Self {
         Self { simple_list: list }
     }
-    pub fn from_iter(s: impl IntoIterator<Item = SimpleModel<'a>>) -> Self {
+}
+
+impl<'a> std::iter::FromIterator<SimpleModel<'a>> for SimpleListModel<'a> {
+    fn from_iter<T: IntoIterator<Item = SimpleModel<'a>>>(iter: T) -> Self {
         Self {
-            simple_list: s.into_iter().collect(),
+            simple_list: iter.into_iter().collect(),
         }
     }
 }
