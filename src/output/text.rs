@@ -36,7 +36,6 @@ where
     }
 }
 
-// lame
 pub trait TextRender {
     fn render<W: Write>(
         &self,
@@ -174,18 +173,49 @@ impl<'a> TextRender for output::DependencyModel<'a> {
 
         let pad = " ".repeat(depth + 2);
         let pad2 = " ".repeat(depth + 4);
+        let pad3 = " ".repeat(depth + 6);
+
+        #[derive(Default)]
+        struct Widths {
+            name: usize,
+            opt: usize,
+            req: usize,
+        }
 
         let mut sorted: BTreeMap<_, _> = self.dependencies.clone().into_iter().collect();
-        let (left, right) = sorted
-            .iter_mut()
-            .map(|(kind, list)| {
-                list.sort_unstable_by(|l, r| l.crate_id.cmp(&r.crate_id));
-                (kind, list)
-            })
-            .flat_map(|(_, list)| list.iter())
-            .fold((0, 0), |(left, right), item| {
-                (width(left, &item.crate_id), width(right, &item.req))
-            });
+
+        // this
+        // is
+        // a
+        // mess
+        let widths = columns(
+            3,
+            sorted
+                .iter_mut()
+                .map(|(kind, list)| {
+                    list.sort_unstable_by(|l, r| l.crate_id.cmp(&r.crate_id));
+                    (kind, list)
+                })
+                .flat_map(|(_, list)| list.iter())
+                .map(|dep| {
+                    vec![
+                        dep.crate_id.as_str(),
+                        if dep.optional { "  " } else { "" },
+                        dep.req.as_str(),
+                    ]
+                }),
+        )
+        .into_iter()
+        .enumerate()
+        .fold(Widths::default(), |mut w, (i, a)| {
+            match i {
+                0 => w.name = a,
+                1 => w.opt = a,
+                2 => w.req = a,
+                _ => unreachable!(),
+            }
+            w
+        });
 
         use crate::crates::DependencyKind::*;
         for (kind, deps) in sorted {
@@ -195,29 +225,69 @@ impl<'a> TextRender for output::DependencyModel<'a> {
                 Build => writeln!(output, "{}{}", pad, red(&"build"))?,
             };
 
-            for dep in deps {
-                if let Some(target) = &dep.target {
-                    writeln!(
-                        output,
-                        "{}{: <l$} = {: <r$} if {}",
-                        pad2,
-                        &dep.crate_id,
-                        yellow(&dep.req),
-                        cyan(&target),
-                        l = left,
-                        r = right,
-                    )?;
-                    continue;
-                }
+            let (ok, opt): (Vec<_>, Vec<_>) =
+                deps.into_iter().partition(|k| k.optional || kind != Normal);
+
+            for dep in ok {
+                let target = dep
+                    .target
+                    .as_ref()
+                    .map(|target| format!("if {}", cyan(target)))
+                    .unwrap_or_default();
 
                 writeln!(
                     output,
-                    "{}{: <l$} = {}",
-                    pad2,
+                    "{}{: <name_width$} = {: <req_width$} {}",
+                    pad2, // TODO better naming
                     &dep.crate_id,
                     yellow(&dep.req),
-                    l = left,
-                )?
+                    target,
+                    name_width = widths.name + widths.opt,
+                    req_width = widths.req,
+                )?;
+
+                if dep.default_features && !dep.features.is_empty() {
+                    writeln!(
+                        output,
+                        "{}- features [{}]",
+                        pad3, // TODO better naming
+                        red(dep.features.join(", "))
+                    )?;
+                }
+            }
+
+            if opt.is_empty() {
+                continue;
+            }
+
+            writeln!(output, "{}{}", pad2, cyan("optional"))?;
+            for dep in opt {
+                let target = dep
+                    .target
+                    .as_ref()
+                    .map(|target| format!("if {}", cyan(target)))
+                    .unwrap_or_default();
+
+                writeln!(
+                    output,
+                    "{}{: <name_width$} = {: <req_width$} {}",
+                    pad3, // TODO better naming
+                    &dep.crate_id,
+                    yellow(&dep.req),
+                    target,
+                    name_width = widths.name,
+                    req_width = widths.req,
+                )?;
+
+                if dep.default_features && !dep.features.is_empty() {
+                    writeln!(
+                        output,
+                        "{}{}- features [{}]",
+                        pad,  // TODO better naming
+                        pad2, // TODO better naming
+                        red(dep.features.join(", "))
+                    )?;
+                }
             }
         }
 
@@ -294,11 +364,6 @@ fn print_list<W: Write>(
     Ok(())
 }
 
-#[inline]
-fn width(old: usize, s: &str) -> usize {
-    std::cmp::max(old, s.chars().map(|c| c.len_utf8()).sum())
-}
-
 #[derive(Copy, Clone)]
 pub enum State {
     First,
@@ -320,4 +385,28 @@ impl State {
         std::mem::replace(self, State::Next);
         *self
     }
+}
+
+#[inline]
+fn width(old: usize, s: &str) -> usize {
+    std::cmp::max(old, s.chars().map(|c| c.len_utf8()).sum())
+}
+
+fn columns<'a, I, S>(expected: usize, iter: I) -> Vec<usize>
+where
+    I: Iterator<Item = S>,
+    S: IntoIterator<Item = &'a str>,
+{
+    let mut result = vec![0; expected];
+    for element in iter {
+        for (size, res) in result
+            .iter_mut()
+            .zip(element)
+            .map(|(l, r)| (width(*l, &r), l))
+        {
+            *res = std::cmp::max(*res, size);
+        }
+    }
+    debug_assert!(result.len() == expected);
+    result
 }

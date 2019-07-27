@@ -118,10 +118,12 @@ impl<'a> FeaturesListModel<'a> {
             features_list: list,
         }
     }
+}
 
-    pub fn from_iter(s: impl IntoIterator<Item = FeaturesModel<'a>>) -> Self {
+impl<'a> std::iter::FromIterator<FeaturesModel<'a>> for FeaturesListModel<'a> {
+    fn from_iter<T: IntoIterator<Item = FeaturesModel<'a>>>(iter: T) -> Self {
         Self {
-            features_list: s.into_iter().collect(),
+            features_list: iter.into_iter().collect(),
         }
     }
 }
