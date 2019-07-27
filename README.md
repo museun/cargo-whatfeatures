@@ -155,17 +155,18 @@ curl/0.4.22
     static-ssl: curl-sys/static-ssl
   dependencies
     normal
-      curl-sys      = ^0.4.18
-      kernel32-sys  = ^0.2.2  if cfg(target_env = "msvc")
-      libc          = ^0.2.42
-      openssl-probe = ^0.1.2  if cfg(all(unix, not(target_os = "macos")))
-      openssl-sys   = ^0.9.43 if cfg(all(unix, not(target_os = "macos")))
-      schannel      = ^0.1.13 if cfg(target_env = "msvc")
-      socket2       = ^0.3.7
-      winapi        = ^0.2.7  if cfg(windows)
+      openssl-probe   = ^0.1.2  if cfg(all(unix, not(target_os = "macos")))
+      openssl-sys     = ^0.9.43 if cfg(all(unix, not(target_os = "macos")))
+      optional
+        curl-sys      = ^0.4.18
+        kernel32-sys  = ^0.2.2  if cfg(target_env = "msvc")
+        libc          = ^0.2.42
+        schannel      = ^0.1.13 if cfg(target_env = "msvc")
+        socket2       = ^0.3.7
+        winapi        = ^0.2.7  if cfg(windows)
     dev
-      mio           = ^0.6
-      mio-extras    = ^2.0.3
+      mio             = ^0.6
+      mio-extras      = ^2.0.3
 ```
 
 #### list the deps for a specific version
@@ -177,9 +178,10 @@ curl/0.3.0
     no default features
   dependencies
     normal
-      curl-sys    = ^0.2.0
-      libc        = ^0.2
-      openssl-sys = ^0.7.0 if cfg(all(unix, not(target_os = "macos")))
+      optional
+        curl-sys    = ^0.2.0
+        libc        = ^0.2
+        openssl-sys = ^0.7.0 if cfg(all(unix, not(target_os = "macos")))
     dev
       mio         = ^0.5
 ```
