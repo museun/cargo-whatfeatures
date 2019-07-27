@@ -209,6 +209,10 @@ impl<'a> TextRender for output::DependencyModel<'a> {
         let pad2 = " ".repeat(depth + 4);
         let pad3 = " ".repeat(depth + 6);
 
+        if self.dependencies.is_empty() {
+            return writeln!(output, "{}{}", pad, red("no dependencies"));
+        }
+
         let mut sorted: BTreeMap<_, _> = self.dependencies.clone().into_iter().collect();
         let widths = columns(
             3,
@@ -358,8 +362,12 @@ impl<'a> TextRender for output::CompositeModel<'a> {
         writeln!(output, "{}{}", pad, green("features"))?;
         <_ as TextRender>::render(&self.features, output, depth, &mut next.advance())?;
 
-        writeln!(output, "{}{}", pad, green("dependencies"))?;
-        <_ as TextRender>::render(&self.dependencies, output, depth, &mut next.advance())
+        if self.dependencies.dependencies.is_empty() {
+            writeln!(output, "{}{}", pad, red("no dependencies"))
+        } else {
+            writeln!(output, "{}{}", pad, green("dependencies"))?;
+            <_ as TextRender>::render(&self.dependencies, output, depth, &mut next.advance())
+        }
     }
 }
 
