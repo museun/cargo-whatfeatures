@@ -554,7 +554,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "whatfeatures"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "attohttpc 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gumdrop 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
