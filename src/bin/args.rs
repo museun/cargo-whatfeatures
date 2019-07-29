@@ -1,47 +1,48 @@
-use gumdrop::Options;
 use lexical_bool::LexicalBool;
+use structopt::StructOpt;
 
-#[derive(Debug, Clone, Options)]
+#[derive(Debug, StructOpt)]
+#[structopt(rename_all = "kebab-case")]
 pub struct Args {
-    #[options(help = "Displays this help message")]
-    pub help: bool,
-
-    #[options(help = "Display dependencies for this crate")]
-    pub deps: bool,
-
-    #[options(help = "A specific version to lookup. e.g. 0.7.1", meta = "SEMVER")]
+    /// A specific version to lookup. e.g. 0.7.1
+    #[structopt(short, long, value_name = "semver")]
     pub version: Option<String>,
 
-    #[options(
-        help = "Display the features for the crate",
-        meta = "bool",
-        default = "true"
-    )]
-    pub features: LexicalBool,
-
-    #[options(help = "Only list the name and version, rather than extended info")]
+    /// Display only the name and version, such as foo/0.1.2
+    #[structopt(short, long, conflicts_with = "deps")]
     pub short: bool,
 
-    #[options(help = "List all versions for the crate")]
+    /// List all versions for the crate
+    #[structopt(short, long, conflicts_with = "version")]
     pub list: bool,
 
-    #[options(
-        help = "Shows any yanked versions. Defaults to hiding them",
-        short = "y"
-    )]
+    /// Shows any yanked versions. Defaults to hiding them
+    #[structopt(short = "y", long)]
     pub show_yanked: bool,
 
-    #[options(
-        help = "Attempts to use colors when printing as text",
-        meta = "bool",
-        default = "true"
+    /// Attempts to use colors when printing as text
+    #[structopt(
+        short,
+        long,
+        parse(try_from_str),
+        value_name = "bool",
+        default_value = "true"
     )]
     pub color: LexicalBool,
 
-    #[options(help = "Use JSON as the output format. Defaults to a textual format")]
+    /// Use JSON as the output format. Defaults to a textual format
+    #[structopt(short, long)]
     pub json: bool,
 
-    #[options(help = "The name of the crate to retrieve information for")]
-    #[options(free)]
+    /// The name of the crate to retrieve information for
+    #[structopt(name = "crate")]
     pub name: String,
+
+    /// Disable listing the features for the crate
+    #[structopt(short, long, requires = "deps")]
+    pub no_features: bool,
+
+    /// Display dependencies for this crate"
+    #[structopt(short, long)]
+    pub deps: bool,
 }

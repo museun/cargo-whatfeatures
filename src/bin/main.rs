@@ -1,9 +1,9 @@
-use gumdrop::Options;
 use std::io::{stderr, stdout, Write};
+
+use structopt::StructOpt;
 use yansi::Paint;
 
 use whatfeatures::{crates, error::*, output::*};
-
 mod args;
 use args::Args;
 
@@ -95,10 +95,10 @@ fn display_deps<W: Write>(args: &Args, output: &mut Output<'_, W>) -> Result<(),
         }};
     }
 
-    if *args.features {
-        create_and_output!(CompositeModel)
-    } else {
+    if args.no_features {
         create_and_output!(DependencyModel)
+    } else {
+        create_and_output!(CompositeModel)
     }
 }
 
@@ -129,28 +129,6 @@ struct WrapError {
     error: UserError,
 }
 
-fn ensure_sane_args(args: &Args) {
-    let disable_colors = std::env::var("NO_COLOR").is_ok();
-    if disable_colors || !*args.color || cfg!(windows) && !Paint::enable_windows_ascii() {
-        Paint::disable();
-    }
-
-    if args.version.is_some() && args.list {
-        let error = UserError::InvalidArgs(&["version", "list"]);
-        maybe_abort(args, Err(error));
-    }
-
-    if !*args.features && !args.deps {
-        let error = UserError::InvalidArgs(&["!features", "!deps"]);
-        maybe_abort(args, Err(error));
-    }
-
-    if args.short && args.deps {
-        let error = UserError::InvalidArgs(&["short", "deps"]);
-        maybe_abort(args, Err(error));
-    }
-}
-
 fn maybe_abort(args: &Args, res: Result<(), UserError>) {
     if let Err(error) = res {
         if args.json {
@@ -164,16 +142,15 @@ fn maybe_abort(args: &Args, res: Result<(), UserError>) {
 }
 
 fn main() {
-    let args = Args::parse_args_default_or_exit();
-    ensure_sane_args(&args);
-
-    if args.name.is_empty() {
-        maybe_abort(&args, Err(UserError::NoNameProvided));
+    let args = Args::from_args();
+    let disable_colors = std::env::var("NO_COLOR").is_ok();
+    if disable_colors || !*args.color || cfg!(windows) && !Paint::enable_windows_ascii() {
+        Paint::disable();
     }
 
     let mut stdout = stdout();
     let mut output = Output::new(&mut stdout);
-    if *args.features {
+    if !args.no_features {
         if args.list {
             maybe_abort(&args, list_all_versions(&args, &mut output));
             return;

@@ -16,13 +16,11 @@ name = "whatfeatures"
 path = "src/bin/main.rs"
 
 [dependencies]
-serde = { version = "1.0.97", features = ["derive"] }
-serde_json = "1.0.40"
-attohttpc = { version = "0.4.1", features = ["json"] }
-gumdrop = "0.6.0"
+log = "0.4.8"
 yansi = "0.5.0"
+structopt = { version = "0.2.18", default-features = false }
 lexical_bool = "0.1.2"
-log = "0.4.7"
+serde = { version = "1.0.98", features = ["derive"] }
+serde_json = "1.0.40"
 
-[dev-dependencies]
-rand = "0.7.0"
+attohttpc = { version = "0.4.1", features = ["json"] }

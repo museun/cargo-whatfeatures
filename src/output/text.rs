@@ -58,19 +58,6 @@ impl TextRender for crate::error::UserError {
         use crate::error::UserError::*;
 
         match self {
-            InvalidArgs(args) => writeln!(
-                output,
-                "{}: invalid argument combination: {}",
-                red("error"),
-                args.iter().fold(String::new(), |mut a, s| {
-                    if !a.is_empty() {
-                        a.push_str(", ");
-                    }
-                    a.push_str(s);
-                    a
-                })
-            ),
-            NoNameProvided => writeln!(output, "{}: no name was provided", red("error")),
             CannotLookup {
                 name,
                 version: Some(version),

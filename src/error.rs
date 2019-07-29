@@ -2,8 +2,6 @@
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum UserError {
-    /// No crate name was provided
-    NoNameProvided,
     /// Cannot look up the crate
     CannotLookup {
         name: String,
@@ -14,8 +12,6 @@ pub enum UserError {
     NoVersions { name: String },
     /// An invalid version was specified for the crate
     InvalidVersion { name: String, version: String },
-    /// Invalid command-line argument combinations
-    InvalidArgs(&'static [&'static str]),
 }
 
 /// An error generated internally (not caused by the user).
