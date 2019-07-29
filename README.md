@@ -38,17 +38,15 @@ cargo install --path . -f
 ## Usage
 ```
 USAGE:
-    whatfeatures.exe [FLAGS] [OPTIONS] <crate>
+    whatfeatures [FLAGS] [OPTIONS] <crate>
 
 FLAGS:
-    -d, --deps           Display dependencies for this crate"       
+    -d, --deps           Display dependencies for this crate
     -h, --help           Prints help information
-    -j, --json           Use JSON as the output format. Defaults to 
-a textual format
+    -j, --json           Use JSON as the output format. Defaults to a textual format
     -l, --list           List all versions for the crate
-    -n, --no-features    Disable listing the features for the crate 
-    -s, --short          Display only the name and version, such as 
-foo/0.1.2
+    -n, --no-features    Disable listing the features for the crate
+    -s, --short          Display only the name and version, such as foo/0.1.2
     -y, --show-yanked    Shows any yanked versions. Defaults to hiding them
 
 OPTIONS:
@@ -67,7 +65,7 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 >whatfeatures serde
 ```
 serde/1.0.97
-  default: std        
+  default: std
   alloc
   derive: serde_derive
   rc

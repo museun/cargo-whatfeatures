@@ -42,7 +42,7 @@ pub struct Args {
     #[structopt(short, long, requires = "deps")]
     pub no_features: bool,
 
-    /// Display dependencies for this crate"
+    /// Display dependencies for this crate
     #[structopt(short, long)]
     pub deps: bool,
 }
