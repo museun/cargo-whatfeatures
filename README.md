@@ -37,21 +37,24 @@ cargo install --path . -f
 
 ## Usage
 ```
-Usage: whatfeatures [OPTIONS]
+USAGE:
+    whatfeatures [FLAGS] [OPTIONS] <crate>
 
-Positional arguments:
-  name                  The name of the crate to retrieve information for
+FLAGS:
+    -d, --deps           Display dependencies for this crate
+    -h, --help           Prints help information
+    -j, --json           Use JSON as the output format. Defaults to a textual format
+    -l, --list           List all versions for the crate
+    -n, --no-features    Disable listing the features for the crate
+    -s, --short          Display only the name and version, such as foo/0.1.2
+    -y, --show-yanked    Shows any yanked versions. Defaults to hiding them
 
-Optional arguments:
-  -h, --help            Displays this help message
-  -d, --deps            Display dependencies for this crate
-  -v, --version SEMVER  A specific version to lookup. e.g. 0.7.1
-  -f, --features bool   Display the features for the crate (default: true)
-  -s, --short           Only list the name and version, rather than extended info
-  -l, --list            List all versions for the crate
-  -y, --show-yanked     Shows any yanked versions. Defaults to hiding them
-  -c, --color bool      Attempts to use colors when printing as text (default: true)
-  -j, --json            Use JSON as the output format. Defaults to a textual format
+OPTIONS:
+    -c, --color <bool>        Attempts to use colors when printing as text [default: true]
+    -v, --version <semver>    A specific version to lookup. e.g. 0.7.1
+
+ARGS:
+    <crate>    The name of the crate to retrieve information for
 ```
 
 This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
@@ -62,7 +65,7 @@ This allows you to lookup a **specific** crate, at a **specific** version and ge
 >whatfeatures serde
 ```
 serde/1.0.97
-  default: std        
+  default: std
   alloc
   derive: serde_derive
   rc
