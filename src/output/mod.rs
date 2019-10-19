@@ -24,6 +24,7 @@ pub struct SimpleModel<'a> {
 }
 
 impl<'a> SimpleModel<'a> {
+    #[inline]
     pub fn from_version(version: &'a Version) -> Self {
         Self {
             name: &version.crate_,
@@ -40,6 +41,7 @@ pub struct FeaturesModel<'a> {
 }
 
 impl<'a> FeaturesModel<'a> {
+    #[inline]
     pub fn from_version(version: &'a Version) -> Self {
         Self {
             simple: SimpleModel::from_version(&version),
@@ -116,6 +118,7 @@ pub struct FeaturesListModel<'a> {
 }
 
 impl<'a> FeaturesListModel<'a> {
+    #[inline]
     pub fn new(list: Vec<FeaturesModel<'a>>) -> Self {
         Self {
             features_list: list,
@@ -131,7 +134,7 @@ impl<'a> std::iter::FromIterator<FeaturesModel<'a>> for FeaturesListModel<'a> {
     }
 }
 
-pub struct Output<'a, W: std::io::Write> {
+pub struct Output<'a, W> {
     writer: &'a mut W,
 }
 
