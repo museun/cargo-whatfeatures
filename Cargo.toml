@@ -1,7 +1,7 @@
 [package]
 edition = "2018"
 name = "whatfeatures"
-version = "0.5.4"
+version = "0.5.5"
 authors = ["museun <museun@outlook.com>"]
 repository = "https://github.com/museun/whatfeatures"
 description = "display features, versions and dependencies of crates"
