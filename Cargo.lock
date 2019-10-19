@@ -616,7 +616,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "whatfeatures"
-version = "0.5.4"
+version = "0.5.5"
 dependencies = [
  "attohttpc 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "lexical_bool 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
