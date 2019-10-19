@@ -2,41 +2,25 @@
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum UserError {
-    /// Cannot look up the crate
+    /// Cannot look up the crate    
     CannotLookup {
         name: String,
         version: Option<String>,
         error: String,
     },
-    /// No versions found for the crate
+    /// No versions found for the crate    
     NoVersions { name: String },
-    /// An invalid version was specified for the crate
+    /// An invalid version was specified for the crate    
     InvalidVersion { name: String, version: String },
 }
 
 /// An error generated internally (not caused by the user).
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum InternalError {
     /// Failed to de/serialize some json
-    Json(serde_json::Error),
+    #[error("json deserialization error: {0}")]
+    Json(#[from] serde_json::Error),
     /// Failed to do an HTTP request
-    Http(attohttpc::Error),
-}
-
-impl std::fmt::Display for InternalError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InternalError::Json(err) => write!(f, "json deserialization error: {}", err),
-            InternalError::Http(err) => write!(f, "http get error: {}", err),
-        }
-    }
-}
-
-impl std::error::Error for InternalError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            InternalError::Json(err) => Some(err),
-            InternalError::Http(err) => Some(err),
-        }
-    }
+    #[error("http get error: {0}")]
+    Http(#[from] attohttpc::Error),
 }
