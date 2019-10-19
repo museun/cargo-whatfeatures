@@ -77,7 +77,7 @@ impl TextRender for crate::error::UserError {
             ),
             NoVersions { name } => writeln!(
                 output,
-                "{}: no versions published for '{}",
+                "{}: no versions published for '{}'",
                 red("error"),
                 green(&name),
             ),
