@@ -2,7 +2,7 @@ use crate::output;
 
 use std::collections::BTreeMap;
 use std::fmt::Display;
-use std::io::Write;
+use std::io::{Result, Write};
 
 use yansi::{Color, Paint};
 
@@ -27,34 +27,24 @@ simple_colors! {
 }
 
 pub trait RenderAsText {
-    fn render<W: Write>(&self, output: &mut W) -> std::io::Result<()>;
+    fn render<W: Write>(&self, output: &mut W) -> Result<()>;
 }
 
 impl<T> RenderAsText for T
 where
     T: TextRender,
 {
-    fn render<W: Write>(&self, output: &mut W) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W) -> Result<()> {
         self.render(output, 0, &mut Default::default())
     }
 }
 
 pub trait TextRender {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()>;
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()>;
 }
 
 impl TextRender for crate::error::UserError {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        _depth: usize,
-        _next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, _depth: usize, _next: &mut State) -> Result<()> {
         use crate::error::UserError::*;
 
         match self {
@@ -93,7 +83,7 @@ impl TextRender for crate::error::UserError {
 }
 
 impl<'a> TextRender for output::SimpleModel<'a> {
-    fn render<W: Write>(&self, output: &mut W, _: usize, _: &mut State) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, _: usize, _: &mut State) -> Result<()> {
         if self.yanked {
             write!(output, "{}: ", red("yanked"))?;
         }
@@ -102,12 +92,7 @@ impl<'a> TextRender for output::SimpleModel<'a> {
 }
 
 impl<'a> TextRender for output::FeaturesModel<'a> {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()> {
         if let State::First = next {
             <_ as TextRender>::render(&self.simple, output, depth, &mut next.advance())?;
         }
@@ -182,12 +167,7 @@ impl<'a> TextRender for output::FeaturesModel<'a> {
 }
 
 impl<'a> TextRender for output::DependencyModel<'a> {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()> {
         if let State::First = next {
             <_ as TextRender>::render(&self.simple, output, depth, &mut next.advance())?;
         }
@@ -332,12 +312,7 @@ impl<'a> TextRender for output::DependencyModel<'a> {
 }
 
 impl<'a> TextRender for output::CompositeModel<'a> {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()> {
         if let State::First = next {
             <_ as TextRender>::render(&self.simple, output, depth, &mut next.advance())?;
         }
@@ -358,12 +333,7 @@ impl<'a> TextRender for output::CompositeModel<'a> {
 }
 
 impl<'a> TextRender for output::SimpleListModel<'a> {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()> {
         for model in &self.simple_list {
             <_ as TextRender>::render(model, output, depth, &mut next.reset())?;
         }
@@ -372,12 +342,7 @@ impl<'a> TextRender for output::SimpleListModel<'a> {
 }
 
 impl<'a> TextRender for output::FeaturesListModel<'a> {
-    fn render<W: Write>(
-        &self,
-        output: &mut W,
-        depth: usize,
-        next: &mut State,
-    ) -> std::io::Result<()> {
+    fn render<W: Write>(&self, output: &mut W, depth: usize, next: &mut State) -> Result<()> {
         for model in &self.features_list {
             <_ as TextRender>::render(model, output, depth, &mut next.reset())?;
         }
@@ -389,25 +354,23 @@ trait Len {
     fn length(&self) -> usize;
 }
 
-impl Len for str {
-    fn length(&self) -> usize {
-        self.len()
-    }
+macro_rules! impl_len_for {
+    ($($ty:ty),* $(,)?) => {
+        $(impl Len for $ty {
+            #[inline]
+            fn length(&self) -> usize {
+                self.len()
+            }
+        })*
+    };
 }
-impl Len for &str {
-    fn length(&self) -> usize {
-        self.len()
-    }
-}
-impl Len for String {
-    fn length(&self) -> usize {
-        self.len()
-    }
-}
+
+impl_len_for!(str, &str, String,);
 
 struct BoundingBox<'a, T> {
     buf: &'a [T],
 }
+
 impl<'a, T: Len> BoundingBox<'a, T> {
     pub fn new(buf: &'a [T]) -> Self {
         Self { buf }
@@ -444,16 +407,19 @@ pub enum State {
 }
 
 impl Default for State {
+    #[inline]
     fn default() -> Self {
         State::First
     }
 }
 
 impl State {
+    #[inline]
     fn reset(&mut self) -> State {
         std::mem::replace(self, Default::default());
         *self
     }
+    #[inline]
     fn advance(&mut self) -> State {
         std::mem::replace(self, State::Next);
         *self
