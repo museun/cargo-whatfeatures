@@ -4,6 +4,7 @@ use structopt::StructOpt;
 #[derive(Debug, StructOpt)]
 #[structopt(bin_name = "cargo")]
 pub enum Command {
+    /// the `whatfeatures` command
     #[structopt(name = "whatfeatures")]
     Whatfeatures(Args),
 }

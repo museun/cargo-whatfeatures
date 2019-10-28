@@ -1,4 +1,4 @@
-//! whatfeatures -- displays features and deps for crates
+//! `whatfeatures` -- displays features and deps for crates
 #![warn(
     missing_docs,
     missing_debug_implementations,

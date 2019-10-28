@@ -21,26 +21,26 @@ pub struct Version {
     pub yanked: bool,
 }
 
-/// A Dependency of a crate
+/// A dependency of a crate
 #[derive(Debug, Clone, Deserialize)]
 pub struct Dependency {
-    /// Dependency id
+    /// The dependency id
     pub id: usize,
-    /// Version id
+    /// The version id
     pub version_id: usize,
-    /// Crate id
+    /// The crate id
     pub crate_id: String,
-    /// Req
+    /// The semver required
     pub req: String,
-    /// Optional
+    /// Optional status
     pub optional: bool,
-    /// Default features
+    /// Has default features
     pub default_features: bool,
-    /// Features
+    /// List of features
     pub features: Vec<String>,
-    /// Target
+    /// Optional target
     pub target: Option<String>,
-    /// Kind
+    /// The dependency kind
     pub kind: DependencyKind,
 }
 
@@ -128,4 +128,13 @@ where
 
     let body = resp.text().map_err(InternalError::Http)?;
     serde_json::from_str(&body).map_err(InternalError::Json)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn whats_this_json() {
+        dbg!(lookup_deps("twitchchat", "0.7.2"));
+    }
 }

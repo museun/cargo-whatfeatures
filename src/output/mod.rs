@@ -158,14 +158,14 @@ impl<'a> std::iter::FromIterator<FeaturesModel<'a>> for FeaturesListModel<'a> {
     }
 }
 
-/// Output allows for writing different formats to a Writer
+/// Output allows for writing different formats to a [`Writer`](https://doc.rust-lang.org/stable/std/io/trait.Write.html)
 #[derive(Debug)]
 pub struct Output<'a, W> {
     writer: &'a mut W,
 }
 
 impl<'a, W: std::io::Write> Output<'a, W> {
-    /// Create a new Output from a Writer
+    /// Create a new [`Output`](./struct.Output.html) from a Writer
     pub fn new(writer: &'a mut W) -> Self {
         Self { writer }
     }

@@ -57,7 +57,7 @@ ARGS:
     <crate>    The name of the crate to retrieve information for
 ```
 
-This allows you to lookup a **specific** crate, at a **specific** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
+This allows you to lookup a **specific** crate, at a ***specific*** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
 
 ## Examples:
 ### Features
