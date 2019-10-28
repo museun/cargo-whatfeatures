@@ -26,13 +26,7 @@
 ## Install
 with rustup installed, simply do:
 ```
-cargo install --git https://github.com/museun/whatfeatures -f
-```
-or
-```
-git clone https://github.com/museun/whatfeatures
-cd whatfeatures
-cargo install --path . -f
+cargo install whatfeatures
 ```
 
 ## Usage
@@ -62,7 +56,7 @@ This allows you to lookup a **specific** crate, at a ***specific*** version and 
 ## Examples:
 ### Features
 #### list the features for the latest version
->whatfeatures serde
+>cargo whatfeatures serde
 ```
 serde/1.0.97
   default: std
@@ -74,7 +68,7 @@ serde/1.0.97
 ```
 
 #### list the features for a specific version
->whatfeatures twitchchat -v 0.5.0
+>cargo whatfeatures twitchchat -v 0.5.0
 ```
 twitchchat/0.5.0
   default: all
@@ -83,7 +77,7 @@ twitchchat/0.5.0
 ```
 
 #### display yanked releases that are newer than the current
->whatfeatures futures --show-yanked
+>cargo whatfeatures futures --show-yanked
 ```
 yanked: futures/0.2.3-docs-yank.4
   no default features
@@ -91,7 +85,7 @@ yanked: futures/0.2.3-docs-yank.4
 
 ### Simple listing
 ### list all name and version pairs
->whatfeatures --list --short lock-api
+>cargo whatfeatures --list --short lock-api
 ```
 lock_api/0.3.1
 lock_api/0.2.0
@@ -103,7 +97,7 @@ lock_api/0.1.0
 ```
 
 #### list all name and version pairs, including yanked versions
->whatfeatures --list --short --show-yanked lock-api
+>cargo whatfeatures --list --short --show-yanked lock-api
 ```
 lock_api/0.3.1
 yanked: lock_api/0.3.0
@@ -117,7 +111,7 @@ lock_api/0.1.0
 ```
 
 #### list all features for all versions
->whatfeatures simple-logger --list
+>cargo whatfeatures simple-logger --list
 ```
 simple_logger/1.3.0
   default: colored
@@ -146,7 +140,7 @@ simple_logger/0.0.2
 ### Dependencies
 #### list the deps for the latest version
 **note** use `-f false` to not list the features
->whatfeatures curl --deps
+>cargo whatfeatures curl --deps
 ```
 curl/0.4.22
   features
@@ -174,7 +168,7 @@ curl/0.4.22
 
 #### list the deps for a specific version
 **note** use `-f false` to not list the features
->whatfeatures curl --deps -v 0.3.0
+>cargo whatfeatures curl --deps -v 0.3.0
 ```
 curl/0.3.0
   features
