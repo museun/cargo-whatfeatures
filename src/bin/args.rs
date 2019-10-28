@@ -2,6 +2,14 @@ use lexical_bool::LexicalBool;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
+#[structopt(bin_name = "cargo")]
+pub enum Command {
+    /// the `whatfeatures` command
+    #[structopt(name = "whatfeatures")]
+    Whatfeatures(Args),
+}
+
+#[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case")]
 pub struct Args {
     /// A specific version to lookup. e.g. 0.7.1

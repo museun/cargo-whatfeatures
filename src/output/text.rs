@@ -400,9 +400,12 @@ impl<'a, T: Len> BoundingBox<'a, T> {
     }
 }
 
-#[derive(Copy, Clone)]
+/// Output state
+#[derive(Copy, Clone, Debug)]
 pub enum State {
+    /// First time this is being outputted
     First,
+    /// The next time its being outputted
     Next,
 }
 
