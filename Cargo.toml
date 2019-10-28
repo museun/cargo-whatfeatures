@@ -1,11 +1,11 @@
 [package]
 edition = "2018"
 name = "whatfeatures"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["museun <museun@outlook.com>"]
 repository = "https://github.com/museun/whatfeatures"
 description = "display features, versions and dependencies of crates"
-keywords = [ "features", "dependencies", "crates" ]
+keywords = [ "features", "dependencies", "crates", "cargo" ]
 license = "0BSD"
 readme = "README.md"
 build = "build.rs"
