@@ -4,14 +4,25 @@
 pub enum UserError {
     /// Cannot look up the crate    
     CannotLookup {
+        /// Name of the crate
         name: String,
+        /// Version of the crate
         version: Option<String>,
+        /// Error display
         error: String,
     },
     /// No versions found for the crate    
-    NoVersions { name: String },
+    NoVersions {
+        /// Name of the crate
+        name: String,
+    },
     /// An invalid version was specified for the crate    
-    InvalidVersion { name: String, version: String },
+    InvalidVersion {
+        /// Name of the crate
+        name: String,
+        /// Version of the crate
+        version: String,
+    },
 }
 
 /// An error generated internally (not caused by the user).

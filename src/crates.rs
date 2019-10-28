@@ -8,25 +8,39 @@ type Result<T> = std::result::Result<T, InternalError>;
 /// A crate, including its version
 #[derive(Debug, Clone, Deserialize)]
 pub struct Version {
+    /// Crate id
     pub id: u64,
+    /// Crate name
     #[serde(rename = "crate")]
     pub crate_: String,
+    /// Semver version
     pub num: String,
+    /// A mapping of features
     pub features: HashMap<String, Vec<String>>,
+    /// Yanked status
     pub yanked: bool,
 }
 
 /// A Dependency of a crate
 #[derive(Debug, Clone, Deserialize)]
 pub struct Dependency {
+    /// Dependency id
     pub id: usize,
+    /// Version id
     pub version_id: usize,
+    /// Crate id
     pub crate_id: String,
+    /// Req
     pub req: String,
+    /// Optional
     pub optional: bool,
+    /// Default features
     pub default_features: bool,
+    /// Features
     pub features: Vec<String>,
+    /// Target
     pub target: Option<String>,
+    /// Kind
     pub kind: DependencyKind,
 }
 
@@ -34,8 +48,11 @@ pub struct Dependency {
 #[derive(Debug, Clone, Copy, Hash, PartialEq, PartialOrd, Ord, Eq, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DependencyKind {
+    /// Normal
     Normal,
+    /// Dev
     Dev,
+    /// Build
     Build,
 }
 
@@ -100,7 +117,7 @@ pub fn lookup_versions(crate_name: &str) -> Result<Vec<Version>> {
 
 fn fetch<T>(ep: &str) -> Result<T>
 where
-    for<'a> T: serde::Deserialize<'a>,
+    for<'a> T: Deserialize<'a>,
 {
     log::trace!("fetching {}", ep);
 

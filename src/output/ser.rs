@@ -1,6 +1,7 @@
 use super::*;
 use serde::ser::*;
 
+/// Create a serde map
 #[macro_export]
 macro_rules! map {
     (@one $($x:tt)*) => (());
