@@ -5,7 +5,7 @@ use yansi::Paint;
 
 use whatfeatures::{crates, error::*, output::*};
 mod args;
-use args::Args;
+use args::{Args, Command};
 
 fn list_all_versions<W: Write>(
     args: &Args,
@@ -142,7 +142,9 @@ fn maybe_abort(args: &Args, res: Result<(), UserError>) {
 }
 
 fn main() {
-    let args = Args::from_args();
+    let args = Command::from_args();
+    let Command::Whatfeatures(args) = args;
+
     let disable_colors = std::env::var("NO_COLOR").is_ok();
     if disable_colors || !*args.color || cfg!(windows) && !Paint::enable_windows_ascii() {
         Paint::disable();
