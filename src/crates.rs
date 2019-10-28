@@ -129,12 +129,3 @@ where
     let body = resp.text().map_err(InternalError::Http)?;
     serde_json::from_str(&body).map_err(InternalError::Json)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn whats_this_json() {
-        dbg!(lookup_deps("twitchchat", "0.7.2"));
-    }
-}
