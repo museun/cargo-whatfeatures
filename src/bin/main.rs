@@ -3,7 +3,7 @@ use std::io::{stderr, stdout, Write};
 use structopt::StructOpt;
 use yansi::Paint;
 
-use whatfeatures::{crates, error::*, output::*};
+use cargo_whatfeatures::{crates, error::*, output::*};
 mod args;
 use args::{Args, Command};
 
