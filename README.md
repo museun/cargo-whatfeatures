@@ -26,13 +26,13 @@
 ## Install
 with rustup installed, simply do:
 ```
-cargo install whatfeatures
+cargo install cargo-whatfeatures
 ```
 
 ## Usage
 ```
 USAGE:
-    whatfeatures [FLAGS] [OPTIONS] <crate>
+    cargo whatfeatures [FLAGS] [OPTIONS] <crate>
 
 FLAGS:
     -d, --deps           Display dependencies for this crate
