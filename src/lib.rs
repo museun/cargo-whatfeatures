@@ -21,7 +21,7 @@ pub use client::Client;
 mod registry;
 
 #[doc(inline)]
-pub use registry::{Registry, YankState};
+pub use registry::{Crate, Registry, YankState};
 
 mod args;
 

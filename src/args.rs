@@ -1,8 +1,6 @@
 use crate::printer::YankStatus;
 use pico_args::Arguments;
 
-// TODO maybe --no-optional
-// add local (--path)
 /// Input for the program
 #[derive(Debug)]
 pub struct Args {
@@ -249,8 +247,8 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    help            Prints this message or the help of the given subcommand(s)
-    whatfeatures    the `whatfeatures` command";
+    help             Prints this message or the help of the given subcommand(s)
+    whatfeatures     the `whatfeatures` command";
 
     static SHORT_HELP: &str = r#"the `whatfeatures` command
 
@@ -274,7 +272,7 @@ OPTIONS:
     -y, --show-yanked <yanked>  Shows any yanked versions when using `--list`. [default: exclude].
 
 ARGS:
-    <crate>                     The name of the crate to retrieve information for.
+    <crate>                     The name of the crate to retrieve information for. This can be a local path.
 "#;
 
     static LONG_HELP: &str = r#"the `whatfeatures` command
@@ -338,7 +336,8 @@ ARGS:
             When 'only' is provided, only yanked versions will be listed
 
     ARGS:
-        <crate>  The name of the crate to retrieve information for.
+        <crate>  The name of the crate to retrieve information for. 
+        This can be a local path, to whichever directly contains a 'Cargo.toml'
 "#;
 
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));

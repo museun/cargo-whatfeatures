@@ -140,6 +140,16 @@ impl Crate {
             .map(Features::parse)
             .map_err(Into::into)
     }
+
+    /// Tries to get the features from a local crate
+    pub fn from_path(path: impl Into<PathBuf>) -> anyhow::Result<Features> {
+        cargo_metadata::MetadataCommand::new()
+            .current_dir(path)
+            .no_deps()
+            .exec()
+            .map(Features::parse)
+            .map_err(Into::into)
+    }
 }
 
 impl PartialEq for Crate {
