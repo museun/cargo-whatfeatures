@@ -10,14 +10,8 @@ pub struct Features {
     pub version: String,
     // TOOO ignore features that begin with _
     // or atleast note that they aren't meant for public usage (see reqwest's `__internal_proxy_sys_no_cache`)
-
-    // TODO document this
     pub features: HashMap<String, Vec<String>>,
-
-    // TODO document this
     pub optional_deps: HashMap<Kind, Vec<Dependency>>,
-
-    // TODO document this
     pub required_deps: HashMap<Kind, Vec<Dependency>>,
 }
 

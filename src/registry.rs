@@ -34,8 +34,7 @@ impl Registry {
                     name: name.to_string(),
                     version: version.to_string(),
                     path,
-                    // TODO
-                    yanked: YankState::UnknownLocal,
+                    yanked: YankState::UnknownLocal, // TODO we can do an http request to figure this out
                 });
             }
         }
@@ -61,7 +60,7 @@ impl Registry {
                     name: name.to_string(),
                     version: version.to_string(),
                     path: dir.clone(),
-                    yanked: YankState::UnknownLocal, // TODO
+                    yanked: YankState::UnknownLocal, // TODO we can do a http request to figure this out
                 };
 
                 if set.contains(&crate_) {
