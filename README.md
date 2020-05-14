@@ -56,6 +56,11 @@ FLAGS:
     -s, --short
         Display only the name and latest version, such as foo/0.1.2
 
+    -o, --offline
+        Don't connect to the internet, limits the availities of this.
+        If the crate is in either cargo's local registry, or whatfeatures' cache
+        then this will work normally, otherwise it'll give you a nice error.
+
     -p, --print-cache-dir   
         Prints out the path to the cache directory
 
@@ -86,7 +91,8 @@ OPTIONS:
         When 'only' is provided, only yanked versions will be listed
 
 ARGS:
-    <crate>  The name of the crate to retrieve information for.
+    <crate>  The name of the crate to retrieve information for. 
+             This can be a local path, to whichever directly contains a 'Cargo.toml'
 ```
 
 This allows you to lookup a **specific** crate, at a ***specific*** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
