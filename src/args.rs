@@ -31,7 +31,7 @@ impl Args {
         if args
             .subcommand()?
             .as_deref()
-            .filter(|&s| s == env!("CARGO_PKG_NAME"))
+            .filter(|&s| format!("cargo-{}", s) == env!("CARGO_PKG_NAME"))
             .is_none()
         {
             print_help(Help::Cargo)
@@ -337,7 +337,7 @@ ARGS:
 
     ARGS:
         <crate>  The name of the crate to retrieve information for. 
-        This can be a local path, to whichever directly contains a 'Cargo.toml'
+                 This can be a local path, to whichever directly contains a 'Cargo.toml'
 "#;
 
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
