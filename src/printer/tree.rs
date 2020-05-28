@@ -3,7 +3,8 @@ use std::{
     fmt::Display,
     io::{self, Write},
 };
-use yansi::*;
+
+use super::Theme;
 
 #[derive(Debug, Copy, Clone)]
 struct Style {
@@ -85,19 +86,19 @@ impl Item for Node {
 }
 
 pub trait Printer {
-    fn print<W: Write + ?Sized>(self, writer: &mut W) -> io::Result<()>;
+    fn print<W: Write + ?Sized>(self, writer: &mut W, theme: &Theme) -> io::Result<()>;
 }
 
 impl<T> Printer for T
 where
     T: Item,
 {
-    fn print<W: Write + ?Sized>(self, writer: &mut W) -> io::Result<()> {
-        print(self, writer)
+    fn print<W: Write + ?Sized>(self, writer: &mut W, theme: &Theme) -> io::Result<()> {
+        print(self, writer, theme)
     }
 }
 
-pub fn print<I, W>(item: I, writer: &mut W) -> io::Result<()>
+pub fn print<I, W>(item: I, writer: &mut W, theme: &Theme) -> io::Result<()>
 where
     I: Item,
     W: Write + ?Sized,
@@ -109,6 +110,7 @@ where
         child: C,
         style: &Style,
         depth: usize,
+        theme: &Theme,
     ) -> std::io::Result<()>
     where
         I: Item,
@@ -116,7 +118,7 @@ where
         L: Display,
         C: Display,
     {
-        write!(writer, "{}", Paint::cyan(left))?;
+        write!(writer, "{}", theme.tree.paint(left))?;
         item.write(writer)?;
         writeln!(writer)?;
 
@@ -125,17 +127,33 @@ where
             let right_prefix = format!("{}{}", child, style.pipe);
 
             for child in children {
-                print(child, writer, &left_prefix, &right_prefix, style, depth + 1)?;
+                print(
+                    child,
+                    writer,
+                    &left_prefix,
+                    &right_prefix,
+                    style,
+                    depth + 1,
+                    theme,
+                )?;
             }
 
             // TODO we can get rid of these 2 allocations if we change the signature
             let left_prefix = format!("{}{}", child, style.edge);
             let right_prefix = format!("{}{}", child, style.empty);
-            print(last, writer, left_prefix, right_prefix, style, depth + 1)?;
+            print(
+                last,
+                writer,
+                left_prefix,
+                right_prefix,
+                style,
+                depth + 1,
+                theme,
+            )?;
         }
 
         Ok(())
     }
 
-    print(&item, writer, "", "", &Style::default(), 0)
+    print(&item, writer, "", "", &Style::default(), 0, theme)
 }
