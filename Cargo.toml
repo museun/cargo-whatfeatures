@@ -16,7 +16,7 @@ name = "cargo-whatfeatures"
 path = "src/bin/whatfeatures/main.rs"
 
 [dependencies]
-anyhow              = "1.0.30"
+anyhow              = "1.0.31"
 attohttpc           = { version = "0.13.0", features = ["json"] }
 cargo_metadata      = "0.10.0"
 crate_version_parse = "0.2.0"
@@ -25,7 +25,7 @@ flate2              = "1.0.14"
 home                = "0.5.3"
 pico-args           = "0.3.1"
 serde               = { version = "1.0.110", features = ["derive"] }
-tar                 = "0.4.26"
+tar                 = "0.4.28"
 yansi               = "0.5.0"
 
 [profile.release.build-override]
