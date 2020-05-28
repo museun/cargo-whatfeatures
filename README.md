@@ -1,7 +1,6 @@
 # cargo-whatfeatures
 [![Documentation][docs_badge]][docs]
 [![Crates][crates_badge]][crates]
-[![Actions][actions_badge]][actions]
 
 ## Table of Contents
 - [Install](#install)
@@ -276,8 +275,6 @@ See [LICENSE-APACHE][APACHE] and [LICENSE-MIT][MIT] for details.
 [docs]: https://docs.rs/cargo-whatfeatures
 [crates_badge]: https://img.shields.io/crates/v/cargo-whatfeatures.svg
 [crates]: https://crates.io/crates/cargo-whatfeatures
-[actions_badge]: https://github.com/museun/cargo-whatfeatures/workflows/Rust/badge.svg
-[actions]: https://github.com/museun/cargo-whatfeatures/actions
 
 [APACHE]: ./LICENSE-APACHE
 [MIT]: ./LICENSE-MIT
