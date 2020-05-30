@@ -11,6 +11,7 @@
   * [Features](#features)
     - [list the features for the latest version](#list-the-features-for-the-latest-version)
     - [list the features for a specific version](#list-the-features-for-a-specific-version)
+    - [list the features for a local crate](#list-the-features-for-a-local-crate)
   * [Simple listing](#simple-listing)
     - [get the latest version](#get-the-latest-version)
     - [list all name and version pairs](#list-all-name-and-version-pairs)
@@ -19,6 +20,7 @@
   * [Dependencies](#dependencies)
     - [list the deps for the latest version](#list-the-deps-for-the-latest-version)
     - [list the deps for a specific version](#list-the-deps-for-a-specific-version)
+    - [list the deps for a local crate](#list-the-deps-for-a-local-crate)
 
 ## Install
 with cargo installed, simply do:
@@ -164,6 +166,19 @@ features
 └─ tokio_rustls
 ```
 
+### list the features for a local crate
+>cargo whatfeatures --manifest-path .
+```
+twitchchat/0.10.3
+features
+├─ default
+│ ├─ async
+│ └─ tokio_native_tls
+├─ async
+├─ tokio_native_tls
+└─ tokio_rustls
+```
+
 ### Simple listing
 #### get the latest version
 >cargo whatfeatures --short lock-api
@@ -239,26 +254,54 @@ required dependencies
 │ ├─ mio = ^0.6 
 │ └─ mio-extras = ^2.0.3 
 └─ no build dependencies
+optional dependencies
+└─ for cfg(all(unix, not(target_os = "macos")))
+   ├─ openssl-probe = ^0.1.2 
+   └─ openssl-sys = ^0.9.43
 ```
 
 #### list the deps for a specific version
 **note** use `-f false` to not list the features
->cargo whatfeatures curl --deps -v 0.3.0
+>cargo whatfeatures -p curl:0.3.0 --deps
 ```
 curl/0.3.0
 no features
-no optional dependencies
 required dependencies
 ├─ normal
 │ ├─ for cfg(all(unix, not(target_os = "macos")))
-│ │ └─ openssl-sys = ^0.7.0
-│ ├─ curl-sys = ^0.2.0
-│ └─ libc = ^0.2
+│ │ └─ openssl-sys = ^0.7.0 
+│ ├─ curl-sys = ^0.2.0 
+│ └─ libc = ^0.2 
 ├─ development
-│ └─ mio = ^0.5
+│ └─ mio = ^0.5 
 └─ no build dependencies
+no optional dependencies
 ```
 
+### list the deps for a local crate
+>cargo whatfeatures --manifest-path . -d -n
+```
+twitchchat/0.10.3
+required dependencies
+├─ normal
+│ ├─ log = ^0.4 
+│ ├─ parking_lot = ^0.10 
+│ └─ static_assertions = ^1.1 
+├─ development
+│ ├─ doc-comment = ^0.3.3 
+│ ├─ matches = ^0.1.8 
+│ ├─ tokio = ^0.2.13 (has enabled features)
+│ └─ tokio-test = ^0.2.0 
+└─ no build dependencies
+optional dependencies
+├─ futures = ^0.3 
+├─ native-tls = ^0.2 
+├─ serde = ^1.0 (has enabled features)
+├─ tokio = ^0.2 (has enabled features)
+├─ tokio-rustls = ^0.13 
+├─ tokio-tls = ^0.3 
+└─ webpki-roots = ^0.19 
+```
 
 ## License
 `cargo-whatfeatures` is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
