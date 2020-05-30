@@ -9,6 +9,8 @@ use std::{
 };
 use yansi::Paint;
 
+mod labels;
+
 mod deps;
 use deps::{GroupedDeps, SortedDeps};
 
@@ -18,22 +20,8 @@ use tree::{Node, Printer as _};
 mod theme;
 use theme::Theme;
 
-/// When to show yanked crates
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum YankStatus {
-    /// Only show yanked crates
-    Only,
-    /// Exclude all yanked crates
-    Exclude,
-    /// Include yanked crates
-    Include,
-}
-
-impl Default for YankStatus {
-    fn default() -> Self {
-        Self::Exclude
-    }
-}
+mod yank_status;
+pub use yank_status::YankStatus;
 
 // TODO build a tree so we can convert it to a DAG or json or just print it here
 // currently, we do an adhoc-walk over the features building a bespoke tree
@@ -58,13 +46,15 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
     /// Write out all of the versions, filtered by the `YankStatus`
     pub fn write_versions(
         &mut self,
-        name: &str,
         versions: &[Version],
         yank: YankStatus,
     ) -> std::io::Result<()> {
         for ver in versions {
             let Version {
-                yanked, version, ..
+                yanked,
+                version,
+                name,
+                ..
             } = ver;
 
             match yank {
@@ -82,7 +72,7 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 YankStatus::Include => {}
             }
 
-            self.write_latest(&name, &version)?
+            self.write_latest(name, version)?
         }
         Ok(())
     }
@@ -103,7 +93,7 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
     }
 
     /// Write all of the features for the crate
-    pub fn write_features(&mut self, features: &Features) -> std::io::Result<()> {
+    pub fn write_features(&mut self, features: &Features, verbose: bool) -> std::io::Result<()> {
         let mut sorted: BTreeMap<&String, BTreeSet<&String>> = features
             .features
             .iter()
@@ -136,7 +126,7 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 self.theme.feature_name.paint(k)
             };
 
-            if v.is_empty() {
+            if v.is_empty() || !verbose {
                 Node::empty(k)
             } else {
                 Node::new(
@@ -160,7 +150,7 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
     }
 
     /// Write all of the optional dependencies for the crate
-    pub fn write_opt_deps(&mut self, features: &Features) -> std::io::Result<()> {
+    pub fn write_opt_deps(&mut self, features: &Features, verbose: bool) -> std::io::Result<()> {
         let sorted = SortedDeps::from_kind_map(features.optional_deps.clone());
         if !sorted.normal.has_deps() {
             return Node::empty(
@@ -177,12 +167,13 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 .paint(labels::OPTIONAL_DEPENDENCIES),
             sorted.normal,
             &self.theme,
+            verbose,
         )
         .print(self.writer, &self.theme)
     }
 
     /// Write all of the other dependencies for the crate
-    pub fn write_deps(&mut self, features: &Features) -> std::io::Result<()> {
+    pub fn write_deps(&mut self, features: &Features, verbose: bool) -> std::io::Result<()> {
         let sorted = SortedDeps::from_kind_map(features.required_deps.clone());
         if !sorted.normal.has_deps() && !sorted.development.has_deps() && !sorted.build.has_deps() {
             return Node::empty(
@@ -199,6 +190,7 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 self.theme.normal_deps.paint(labels::NORMAL),
                 sorted.normal,
                 &self.theme,
+                verbose,
             ));
         } else {
             // this should should always be visible
@@ -214,9 +206,9 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 self.theme.dev_deps.paint(labels::DEVELOPMENT),
                 sorted.development,
                 &self.theme,
+                verbose,
             ));
         } else {
-            // TODO make this only visible via a verbosity flag
             nodes.push(Node::empty(
                 self.theme
                     .no_dev_deps
@@ -229,9 +221,9 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
                 self.theme.build_deps.paint(labels::BUILD),
                 sorted.build,
                 &self.theme,
+                verbose,
             ));
         } else {
-            // TODO make this only visible via a verbosity flag
             nodes.push(Node::empty(
                 self.theme
                     .no_build_deps
@@ -249,22 +241,36 @@ impl<'a, W: Write + ?Sized> Printer<'a, W> {
     }
 }
 
-fn build_features_tree(text: impl ToString, deps: GroupedDeps, theme: &Theme) -> Node {
-    fn build_features(deps: Vec<Dependency>, theme: &Theme) -> impl Iterator<Item = Node> {
+fn build_features_tree(
+    text: impl ToString,
+    deps: GroupedDeps,
+    theme: &Theme,
+    verbose: bool,
+) -> Node {
+    fn build_features(
+        deps: Vec<Dependency>,
+        theme: &Theme,
+        verbose: bool,
+    ) -> impl Iterator<Item = Node> {
         let mut tree = vec![];
         for dep in deps {
-            let name = format_dep(&dep, &theme);
+            let name = format_dep(&dep, theme);
             if !dep.features.is_empty() {
-                tree.push(Node::new(
-                    format!(
-                        "{}{}",
-                        name, // TODO does this have a color?
-                        theme
-                            .has_enabled_features
-                            .paint(labels::HAS_ENABLED_FEATURES)
-                    ),
-                    dep.features.into_iter().map(|s| theme.dep_feature.paint(s)),
-                ));
+                let name = format!(
+                    "{}{}",
+                    name, // TODO does this have a color?
+                    theme
+                        .has_enabled_features
+                        .paint(labels::HAS_ENABLED_FEATURES)
+                );
+                if !verbose {
+                    tree.push(Node::empty(name));
+                } else {
+                    tree.push(Node::new(
+                        name,
+                        dep.features.into_iter().map(|s| theme.dep_feature.paint(s)),
+                    ));
+                }
                 continue;
             }
             tree.push(Node::empty(name));
@@ -278,10 +284,10 @@ fn build_features_tree(text: impl ToString, deps: GroupedDeps, theme: &Theme) ->
         .map(|(target, deps)| {
             Node::new(
                 format!("for {}", theme.target.paint(target)),
-                build_features(deps, &theme),
+                build_features(deps, theme, verbose),
             )
         })
-        .chain(build_features(deps.without_targets, &theme));
+        .chain(build_features(deps.without_targets, theme, verbose));
 
     Node::new(text, iter)
 }
@@ -298,26 +304,4 @@ fn format_dep(dep: &Dependency, theme: &Theme) -> String {
                 .unwrap_or_else(|| "".into()),
         )
     )
-}
-
-mod labels {
-    pub const YANKED: &str = "yanked";
-
-    pub const NO_FEATURES: &str = "no features";
-    pub const DEFAULT: &str = "default";
-    pub const NO_DEFAULT_FEATURES: &str = "no default features";
-    pub const FEATURES: &str = "features";
-    pub const NO_OPTIONAL_DEPENDENCIES: &str = "no optional dependencies";
-    pub const OPTIONAL_DEPENDENCIES: &str = "optional dependencies";
-
-    pub const NO_REQUIRED_DEPENDENCIES: &str = "no required dependencies";
-    pub const NORMAL: &str = "normal";
-    pub const NO_NORMAL_DEPENDENCIES: &str = "no normal dependencies";
-    pub const DEVELOPMENT: &str = "development";
-    pub const NO_DEVELOPMENT_DEPENDENCIES: &str = "no development dependencies";
-    pub const BUILD: &str = "build";
-    pub const NO_BUILD_DEPENDENCIES: &str = "no build dependencies";
-    pub const REQUIRED_DEPENDENCIES: &str = "required dependencies";
-
-    pub const HAS_ENABLED_FEATURES: &str = "(has enabled features)";
 }

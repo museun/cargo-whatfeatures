@@ -26,7 +26,7 @@ pub use registry::{Crate, Registry, YankState};
 mod args;
 
 #[doc(inline)]
-pub use args::Args;
+pub use args::{Args, PkgId};
 
 mod printer;
 
@@ -34,5 +34,7 @@ mod printer;
 pub use printer::{Printer, YankStatus};
 
 mod features;
+
+// pub use features::Features;
 
 mod util;

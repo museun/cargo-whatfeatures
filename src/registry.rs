@@ -94,19 +94,6 @@ impl Registry {
     }
 }
 
-/// A crate stored on disk
-#[derive(Clone, Debug, Eq)]
-pub struct Crate {
-    /// Crate name
-    pub name: String,
-    /// Crate version
-    pub version: String,
-    /// Path to the crate directory
-    pub path: PathBuf,
-    /// Whether this crate was marked as yanked
-    pub yanked: YankState,
-}
-
 /// Whether this crate was marked as yanked on crates.io
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum YankState {
@@ -127,6 +114,19 @@ impl From<bool> for YankState {
             Self::Available
         }
     }
+}
+
+/// A crate stored on disk
+#[derive(Clone, Debug, Eq)]
+pub struct Crate {
+    /// Crate name
+    pub name: String,
+    /// Crate version
+    pub version: String,
+    /// Path to the crate directory
+    pub path: PathBuf,
+    /// Whether this crate was marked as yanked
+    pub yanked: YankState,
 }
 
 impl Crate {
