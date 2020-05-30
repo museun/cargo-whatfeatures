@@ -24,7 +24,7 @@ directories         = "2.0.2"
 flate2              = "1.0.14"
 home                = "0.5.3"
 pico-args           = "0.3.1"
-serde               = { version = "1.0.110", features = ["derive"] }
+serde               = { version = "1.0.111", features = ["derive"] }
 tar                 = "0.4.28"
 yansi               = "0.5.0"
 
