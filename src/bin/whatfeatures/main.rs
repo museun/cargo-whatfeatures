@@ -143,16 +143,14 @@ fn main() -> anyhow::Result<()> {
 
     if print_features {
         printer.write_features(&features, args.verbose)?;
-        if args.verbose {
+        if args.verbose && !args.show_deps {
             printer.write_opt_deps(&features, args.verbose)?;
         }
     }
 
     if args.show_deps {
         printer.write_deps(&features, args.verbose)?;
-        if !print_features {
-            printer.write_opt_deps(&features, args.verbose)?;
-        }
+        printer.write_opt_deps(&features, args.verbose)?;
     }
 
     Ok(())

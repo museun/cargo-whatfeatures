@@ -22,8 +22,9 @@
 
 ## Install
 with cargo installed, simply do:
-> cargo install cargo-whatfeatures
+> cargo install -f cargo-whatfeatures
 
+**Note** -f will replace the previous installed version
 
 ## Notes on color
 if the `NO_COLOR` env-var has a value, all color will be disabled.
@@ -32,76 +33,111 @@ See https://no-color.org/
 
 ## Usage
 ```
-cargo whatfeatures [FLAGS] [OPTIONS] <crate>
+cargo-whatfeatures 0.8.0
+the `whatfeatures` command
 
-FLAGS:
-    -h, --help
-        Prints help information
+    USAGE:
+        cargo whatfeatures [FLAGS] [OPTIONS] <crate>
 
-    -V, --version
-        Displays the program name and version
+    FLAGS:
+        -h, --help
+            Prints help information
 
-    -d, --deps
-        Display dependencies for the crate
-        This will list the required dependencies
+        -V, --version
+            Displays the program name and version
 
-    -n, --no-features
-        Disable listing the features for the crate
+        -d, --deps
+            Display dependencies for the crate
+            This will list the required dependencies
 
-    -l, --list
-        List all versions for the crate.
-        When using the `-y` option, yanked crates can be filtered.
+        -n, --no-features
+            Disable listing the features for the crate
 
-    -s, --short
-        Display only the name and latest version, such as foo/0.1.2
+        -l, --list
+            List all versions for the crate.
+            When using the `-y` option, yanked crates can be filtered.
 
-    -o, --offline
-        Don't connect to the internet, limits the availities of this.
-        If the crate is in either cargo's local registry, or whatfeatures' cache
-        then this will work normally, otherwise it'll give you a nice error.
+        -s, --short
+            Display only the name and latest version, such as foo/0.1.2
 
-    -p, --print-cache-dir   
-        Prints out the path to the cache directory
+        -v, --verbose
+            When this is enabled, all 'implied' features will be listed.
+            Also, optional dependencies will be listed. Optional deps are technically features.
 
-    --purge
-        Purges the local cache. The command will automatically clean up after
-        itself if it sees the crate in the cargo local registry. If its not
-        in the cargo registry, it'll download the crate from crates.io and place 
-        it in its cache. This flag causes that cache to become invalidated.
-        
-        The cache is located at these locations:
-        * Linux: $XDG_CACHE_HOME/museun/whatfeatures
-        * Windows: %LOCALAPPDATA/museun/whatfeatures
-        * macOS: $HOME/Library/Caches/museun/whatfeatures
+        -o, --offline
+            Don't connect to the internet, limits the availities of this.
+            If the crate is in either cargo's local registry, or whatfeatures' cache
+            then this will work normally, otherwise it'll give you a nice error.
 
-OPTIONS:
-    -c, --color [always, auto, never]
-        Attempts to use colors when printing as text [default: auto]
-        *NOTE* When NO_COLOR is set to any value, all colors will be disabled
+        --print-cache-dir
+            Prints out the path to the cache directory
 
-    -v, --vers <semver>
-        A specific version to lookup. e.g. 0.7.1
-        If this is not provided, then the latest crate is used.
+        --purge
+            Purges the local cache. The command will automatically clean up after
+            itself if it sees the crate in the cargo local registry. If its not
+            in the cargo registry, it'll download the crate from crates.io and place
+            it in its cache. This flag causes that cache to become invalidated.
 
-    -y, --show-yanked <exclude, include, only>
-        Shows any yanked versions when using `--list`. [default: exclude].
-        When 'exclude' is provided, only active releases versions will be listed
-        When 'include' is provided, the listing will include yanked versions along with active releases.
-        When 'only' is provided, only yanked versions will be listed
+            The cache is located at these locations:
+            * Linux: $XDG_CACHE_HOME/museun/whatfeatures
+            * Windows: %LOCALAPPDATA/museun/whatfeatures
+            * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-ARGS:
-    <crate>  The name of the crate to retrieve information for. 
-             This can be a local path, to whichever directly contains a 'Cargo.toml'
+    OPTIONS:
+        -c, --color [always, auto, never]
+            Attempts to use colors when printing as text [default: auto]
+            *NOTE* When NO_COLOR is set to any value, all colors will be disabled
+
+        -p, --pkgid <semver>
+            A specific version to lookup. e.g. 0.7.1
+            If this is not provided, then the latest crate is used.
+
+        --manifest-path <PATH>
+            A path to the Cargo.toml you want to read, locally.
+            Use this to read from a local crate, rather than a remote one.
+
+        -y, --show-yanked <exclude, include, only>
+            Shows any yanked versions when using `--list`. [default: exclude].
+            When 'exclude' is provided, only active releases versions will be listed
+            When 'include' is provided, the listing will include yanked versions along with active releases.
+            When 'only' is provided, only yanked versions will be listed
+
+    ARGS:
+        <crate>  The name of the remote crate to retrieve information for.
+                 Using this means you want a 'remote' crate.
+                 This is exclusive with -p, --pkgid and with --manifest-path.
+
 ```
 
 This allows you to lookup a **specific** crate, at a ***specific*** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
+
+You can also use this on local crates.
 
 ## Examples:
 ### Features
 #### list the features for the latest version
 >cargo whatfeatures serde
+
+or
+
+>cargo whatfeatures -p serde
 ```
 serde/1.0.110
+features
+├─ default
+├─ alloc
+├─ derive
+├─ rc
+├─ std
+└─ unstable
+```
+
+#### list the features and optional deps for the latest version
+> cargo whatfeatures serde -v
+
+**Note** this also list 'implied features' (ones that are enabled by other features).
+```
+serde/1.0.111
 features
 ├─ default
 │ └─ std
@@ -111,12 +147,12 @@ features
 ├─ rc
 ├─ std
 └─ unstable
-optional dependencies       
-└─ serde_derive = = 1.0.110 
+optional dependencies
+└─ serde_derive = = 1.0.111 
 ```
 
 #### list the features for a specific version
->cargo whatfeatures twitchchat -v 0.10.2
+>cargo whatfeatures -p twitchchat:0.10.2
 ```
 twitchchat/0.10.2
 features
@@ -124,34 +160,8 @@ features
 │ ├─ async
 │ └─ tokio_native_tls
 ├─ async
-│ ├─ futures
-│ └─ tokio
 ├─ tokio_native_tls
-│ ├─ futures
-│ ├─ native-tls
-│ ├─ tokio
-│ └─ tokio-tls
 └─ tokio_rustls
-   ├─ futures
-   ├─ tokio
-   ├─ tokio-rustls
-   └─ webpki-roots
-optional dependencies
-├─ futures = ^0.3
-├─ native-tls = ^0.2
-├─ serde = ^1.0 (has enabled features)
-│ └─ derive
-├─ tokio = ^0.2 (has enabled features)
-│ ├─ dns
-│ ├─ io-util
-│ ├─ stream
-│ ├─ sync
-│ ├─ tcp
-│ ├─ time
-│ └─ macros
-├─ tokio-rustls = ^0.13
-├─ tokio-tls = ^0.3
-└─ webpki-roots = ^0.19
 ```
 
 ### Simple listing
@@ -202,7 +212,7 @@ yanked: lock-api/0.1.2
 
 ### Dependencies
 #### list the deps for the latest version
-**note** use `--no-features` (`-n`) to not list the features
+**Note** use `--no-features` (`-n`) to not list the features
 >cargo whatfeatures curl --deps
 ```
 curl/0.4.29
@@ -210,40 +220,24 @@ features
 ├─ default
 │ └─ ssl
 ├─ force-system-lib-on-osx
-│ └─ curl-sys/force-system-lib-on-osx
 ├─ http2
-│ └─ curl-sys/http2
 ├─ mesalink
-│ └─ curl-sys/mesalink
 ├─ protocol-ftp
-│ └─ curl-sys/protocol-ftp
 ├─ spnego
-│ └─ curl-sys/spnego
 ├─ ssl
-│ ├─ curl-sys/ssl
-│ ├─ openssl-probe
-│ └─ openssl-sys
 ├─ static-curl
-│ └─ curl-sys/static-curl
 └─ static-ssl
-   └─ curl-sys/static-ssl
-optional dependencies
-└─ for cfg(all(unix, not(target_os = "macos")))
-   ├─ openssl-probe = ^0.1.2
-   └─ openssl-sys = ^0.9.43
 required dependencies
 ├─ normal
 │ ├─ for cfg(target_env = "msvc")
-│ │ ├─ schannel = ^0.1.13
+│ │ ├─ schannel = ^0.1.13 
 │ │ └─ winapi = ^0.3 (has enabled features)
-│ │    ├─ libloaderapi
-│ │    └─ wincrypt
 │ ├─ curl-sys = ^0.4.31 
-│ ├─ libc = ^0.2.42
-│ └─ socket2 = ^0.3.7
+│ ├─ libc = ^0.2.42 
+│ └─ socket2 = ^0.3.7 
 ├─ development
-│ ├─ mio = ^0.6
-│ └─ mio-extras = ^2.0.3
+│ ├─ mio = ^0.6 
+│ └─ mio-extras = ^2.0.3 
 └─ no build dependencies
 ```
 
