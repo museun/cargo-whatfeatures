@@ -87,15 +87,15 @@ impl Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::PkgIdIsLocal => {
+            Self::PkgIdIsLocal => {
                 write!(f, "pkgid must be a `name:semver` pair, not a local path.")?;
             }
 
-            Error::NameRequired => {
+            Self::NameRequired => {
                 write!(f, "A package name must be supplied")?;
             }
 
-            Error::Exclusive { bad } => {
+            Self::Exclusive { bad } => {
                 let flags = join_iter(
                     bad.iter().map(|s| s.as_slice()),
                     |n| format!("`{}`", n),
@@ -105,7 +105,7 @@ impl std::fmt::Display for Error {
                 write!(f, "the flags {} cannot be used at the same time", flags)?;
             }
 
-            Error::ExclusiveWith {
+            Self::ExclusiveWith {
                 bad,
                 provided_short,
                 provided_long,
@@ -123,7 +123,7 @@ impl std::fmt::Display for Error {
                 )?;
             }
 
-            Error::Inclusive {
+            Self::Inclusive {
                 bad,
                 provided_short,
                 provided_long,
@@ -141,15 +141,15 @@ impl std::fmt::Display for Error {
                 )?;
             }
 
-            Error::NoCrateName => {
+            Self::NoCrateName => {
                 write!(f, "a crate name must be provided")?;
             }
 
-            Error::NoCrateOrPkgId => {
+            Self::NoCrateOrPkgId => {
                 write!(f, "no crate name, or pkgid spec provided.")?;
             }
 
-            Error::TooManyCrates { n } => {
+            Self::TooManyCrates { n } => {
                 write!(
                     f,
                     "too many crate names ({}) were provided. only 1 is allowed",
@@ -157,7 +157,7 @@ impl std::fmt::Display for Error {
                 )?;
             }
 
-            Error::UnknownOption { option, allowed } => {
+            Self::UnknownOption { option, allowed } => {
                 let options =
                     allowed
                         .iter()

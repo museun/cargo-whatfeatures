@@ -20,7 +20,7 @@ anyhow              = "1.0.31"
 attohttpc           = { version = "0.13.0", features = ["json"] }
 cargo_metadata      = "0.10.0"
 crate_version_parse = "0.2.0"
-directories         = "2.0.2"
+directories-next    = "1.0.1"
 flate2              = "1.0.14"
 home                = "0.5.3"
 pico-args           = "0.3.1"
