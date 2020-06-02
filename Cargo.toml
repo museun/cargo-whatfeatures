@@ -9,7 +9,7 @@ license       = "MIT OR Apache-2.0"
 name          = "cargo-whatfeatures"
 readme        = "README.md"
 repository    = "https://github.com/museun/whatfeatures"
-version       = "0.8.1"
+version       = "0.8.2"
 
 [[bin]]
 name = "cargo-whatfeatures"
