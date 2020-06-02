@@ -506,10 +506,15 @@ impl Args {
                 vec!["<crate>"]
             ])),
             1 => {
-                pkgid.replace(PkgId::Remote {
-                    name: crate_names.remove(0),
-                    semver: None,
-                });
+                // TODO make this determine if its a remote or local package (prefer remote)
+                let name = crate_names.remove(0);
+
+                let p = match name.parse() {
+                    Ok(pkgid) => pkgid,
+                    Err(..) => PkgId::Local(PathBuf::from(name)),
+                };
+
+                pkgid.replace(p);
             }
             n => anyhow::bail!(Error::TooManyCrates { n }),
         };
