@@ -15,9 +15,14 @@ version       = "0.8.2"
 name = "cargo-whatfeatures"
 path = "src/bin/whatfeatures/main.rs"
 
+[features]
+default    = ["native-tls"]
+native-tls = ["attohttpc/tls"]
+rustls     = ["attohttpc/tls-rustls"]
+
 [dependencies]
 anyhow              = "1.0.31"
-attohttpc           = { version = "0.14.0", features = ["json"] }
+attohttpc           = { version = "0.14.0", default-features = false, features = ["json", "compress"] }
 cargo_metadata      = "0.10.0"
 crate_version_parse = "0.2.0"
 directories-next    = "1.0.1"
