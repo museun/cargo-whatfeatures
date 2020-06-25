@@ -40,7 +40,7 @@ See https://no-color.org/
 
 ## Usage
 ```
-cargo-whatfeatures 0.8.0
+cargo-whatfeatures 0.8.3
 the `whatfeatures` command
 
     USAGE:
