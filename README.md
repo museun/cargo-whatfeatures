@@ -26,6 +26,11 @@
 with cargo installed, simply do:
 > cargo install -f cargo-whatfeatures
 
+**Note** you can switch to using [rustls](https://docs.rs/rustls/latest/rustls/) by doing:
+> cargo install cargo-whatfeatures --no-default-features --features "rustls"
+
+By default it uses the [native-tls](https://docs.rs/native-tls/latest/native_tls/) backend
+
 **Note** -f will replace the previous installed version
 
 ## Notes on color
