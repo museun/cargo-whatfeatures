@@ -1,7 +1,7 @@
 use anyhow::Context as _;
 use std::{collections::HashSet, path::PathBuf};
 
-use crate::features::Features;
+use crate::features::Workspace;
 
 /// Local disk registry (cargo and our own)
 pub struct Registry {
@@ -131,22 +131,32 @@ pub struct Crate {
 
 impl Crate {
     /// Tries to get the features for the crate
-    pub fn get_features(&self) -> anyhow::Result<Features> {
+    pub fn get_features(&self) -> anyhow::Result<Workspace> {
         cargo_metadata::MetadataCommand::new()
             .no_deps()
             .manifest_path(self.path.join("./Cargo.toml"))
             .exec()
-            .map(Features::parse)
+            .map(|md| Workspace::parse(md, &self.name))
             .map_err(Into::into)
     }
 
     /// Tries to get the features from a local crate
-    pub fn from_path(path: impl Into<PathBuf>) -> anyhow::Result<Features> {
+    pub fn from_path(path: impl Into<PathBuf>) -> anyhow::Result<Workspace> {
+        let path = path.into();
+
+        let mut name = path.clone();
+        let name = if path.is_dir() {
+            name.iter().last().unwrap()
+        } else {
+            name.pop();
+            name.iter().last().unwrap()
+        };
+
         cargo_metadata::MetadataCommand::new()
-            .current_dir(path)
+            .current_dir(&path)
             .no_deps()
             .exec()
-            .map(Features::parse)
+            .map(|md| Workspace::parse(md, name.to_str().unwrap()))
             .map_err(Into::into)
     }
 }

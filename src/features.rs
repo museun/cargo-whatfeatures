@@ -1,5 +1,32 @@
-use cargo_metadata::{DependencyKind, Metadata};
+use cargo_metadata::{DependencyKind, Metadata, Package, PackageId};
 use std::collections::HashMap;
+
+#[derive(Debug, Default)]
+pub struct Workspace {
+    pub hint: String,
+    pub map: HashMap<PackageId, Features>,
+}
+
+impl Workspace {
+    pub(crate) fn parse(metadata: Metadata, crate_name: impl ToString) -> Self {
+        let map = metadata.workspace_members.iter().fold(
+            HashMap::with_capacity(metadata.workspace_members.len()),
+            |mut map, id| {
+                map.insert(id.clone(), Features::parse(metadata[id].clone()));
+                map
+            },
+        );
+
+        Self {
+            hint: crate_name.to_string(),
+            map,
+        }
+    }
+
+    pub fn is_workspace(&self) -> bool {
+        self.map.len() > 1
+    }
+}
 
 /// A feature mapping
 #[derive(Debug, Default)]
@@ -8,8 +35,9 @@ pub struct Features {
     pub name: String,
     /// The version of the crate
     pub version: String,
-    // TOOO ignore features that begin with _
-    // or atleast note that they aren't meant for public usage (see reqwest's `__internal_proxy_sys_no_cache`)
+    /// Whether this crate was published
+    // TODO list /which/ registry it was published to
+    pub published: bool,
     /// Feature map
     pub features: HashMap<String, Vec<String>>,
     /// Optional deps. map
@@ -19,38 +47,43 @@ pub struct Features {
 }
 
 impl Features {
-    pub(crate) fn parse(metadata: Metadata) -> Self {
+    // TODO this should just take a Package and parse it
+    pub(crate) fn parse(pkg: Package) -> Self {
         let (mut name, mut version) = (None, None);
         let (mut features, mut optional_deps, mut required_deps) =
             (HashMap::new(), HashMap::new(), HashMap::new());
 
-        for pkg in metadata.packages {
-            name.get_or_insert_with(|| pkg.name.clone()); // why
-            version.get_or_insert_with(|| pkg.version.to_string());
-            features.extend(pkg.features);
+        name.get_or_insert_with(|| pkg.name.clone()); // why
+        version.get_or_insert_with(|| pkg.version.to_string());
+        features.extend(pkg.features);
 
-            for dep in pkg.dependencies {
-                let key = dep.kind.into();
-                let value = Dependency {
-                    name: dep.name,
-                    req: dep.req.to_string(),
-                    target: dep.target.map(|s| s.to_string()),
-                    rename: dep.rename,
-                    features: dep.features,
-                };
+        for dep in pkg.dependencies {
+            let key = dep.kind.into();
+            let value = Dependency {
+                name: dep.name,
+                req: dep.req.to_string(),
+                target: dep.target.map(|s| s.to_string()),
+                rename: dep.rename,
+                features: dep.features,
+            };
 
-                let map: &mut HashMap<Kind, Vec<Dependency>> = if dep.optional {
-                    &mut optional_deps
-                } else {
-                    &mut required_deps
-                };
-                map.entry(key).or_default().push(value)
-            }
+            let map: &mut HashMap<Kind, Vec<Dependency>> = if dep.optional {
+                &mut optional_deps
+            } else {
+                &mut required_deps
+            };
+            map.entry(key).or_default().push(value)
         }
+
+        let published = match pkg.publish {
+            Some(d) if d.is_empty() => false,
+            _ => true,
+        };
 
         Self {
             name: name.unwrap(),
             version: version.unwrap(),
+            published,
             features,
             optional_deps,
             required_deps,

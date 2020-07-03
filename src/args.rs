@@ -6,6 +6,12 @@ use std::path::{Path, PathBuf};
 #[derive(Debug)]
 pub enum Error {
     PkgIdIsLocal,
+
+    FlagRequiresRemote {
+        provided_short: String,
+        provided_long: String,
+    },
+
     NameRequired,
 
     Exclusive {
@@ -89,6 +95,17 @@ impl std::fmt::Display for Error {
         match self {
             Self::PkgIdIsLocal => {
                 write!(f, "pkgid must be a `name:semver` pair, not a local path.")?;
+            }
+
+            Self::FlagRequiresRemote {
+                provided_short,
+                provided_long,
+            } => {
+                write!(
+                    f,
+                    "flag [{}, {}] requires that the crate be remote",
+                    provided_short, provided_long
+                )?;
             }
 
             Self::NameRequired => {
@@ -256,10 +273,7 @@ impl PkgId {
 
     /// Whether this is a local package
     pub fn is_local(&self) -> bool {
-        match self {
-            Self::Local(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Local{ .. })
     }
 }
 
@@ -308,15 +322,21 @@ pub struct Args {
     /// Verbose output (list leaves, etc.)
     pub verbose: bool,
 
+    /// Should we show private crates?
+    pub show_private: bool,
+
     /// Should we list all versions?
     pub list: bool,
 
     /// Should no features be printed out?
     pub no_features: bool,
+
     /// Should we should the dependencies?
     pub show_deps: bool,
-    /// SHould we show yanked versions?
+
+    /// Should we show yanked versions?
     pub show_yanked: Option<YankStatus>,
+
     /// Should we show only the name and version?
     pub name_only: bool,
 
@@ -401,9 +421,11 @@ impl Args {
         let Self {
             list,
             no_features,
+            show_private,
             show_deps,
             name_only,
             pkgid,
+            show_yanked,
             ..
         } = &this;
 
@@ -429,13 +451,22 @@ impl Args {
             if *show_deps {
                 bad.push(vec!["-d", "--deps"]);
             }
+            if *show_private {
+                bad.push(vec!["-r", "--restricted"]);
+            }
             if pkgid.is_local() {
                 bad.push(vec!["<crate>"]);
             }
-
             if !bad.is_empty() {
                 anyhow::bail!(Error::exclusive_with(bad, "-l", "--list"))
             }
+        }
+
+        if show_yanked.is_some() && pkgid.is_local() {
+            anyhow::bail!(Error::FlagRequiresRemote {
+                provided_short: "-y".into(),
+                provided_long: "--show-yanked".into(),
+            });
         }
 
         if *name_only {
@@ -457,6 +488,14 @@ impl Args {
             ))
         }
 
+        if !pkgid.is_local() && *show_private {
+            anyhow::bail!(Error::inclusive_with(
+                vec![vec!["--manifest-path", "or implicit <crate>"]],
+                "-r",
+                "--restricted"
+            ))
+        }
+
         Ok(this)
     }
 
@@ -471,6 +510,7 @@ impl Args {
         let show_yanked = Self::try_parse_yank_status(&mut args)?;
 
         let list = args.contains(["-l", "--list"]);
+        let show_private = args.contains(["-r", "--restricted"]);
         let name_only = args.contains(["-s", "--short"]);
         let no_features = args.contains(["-n", "--no-features"]);
         let show_deps = args.contains(["-d", "--deps"]);
@@ -480,18 +520,14 @@ impl Args {
         let manifest_path: Option<PathBuf> = args.opt_value_from_str("--manifest-path")?;
         let mut pkgid: Option<PkgId> = args.opt_value_from_str(["-p", "--pkgid"])?;
 
-        match (&pkgid, &manifest_path) {
-            (Some(..), Some(..)) => {
-                // "both `[-p, --pkgid]` and `--manifest-path` cannot be used at the same time"
-                // TODO this could be done with like 3 less allocations
-                anyhow::bail!(Error::exclusive(vec![
-                    vec!["-p", "--pkgid"],
-                    vec!["--manifest-path"],
-                ]));
-            }
-            (None, Some(..)) | (Some(..), None) => {}
-            (None, None) => {}
-        };
+        if pkgid.is_some() && manifest_path.is_some() {
+            // "both `[-p, --pkgid]` and `--manifest-path` cannot be used at the same time"
+            // TODO this could be done with like 3 less allocations
+            anyhow::bail!(Error::exclusive(vec![
+                vec!["-p", "--pkgid"],
+                vec!["--manifest-path"],
+            ]));
+        }
 
         // TODO redo all of this
         let mut crate_names = args.free()?;
@@ -508,12 +544,10 @@ impl Args {
             1 => {
                 // TODO make this determine if its a remote or local package (prefer remote)
                 let name = crate_names.remove(0);
-
                 let p = match name.parse() {
                     Ok(pkgid) => pkgid,
                     Err(..) => PkgId::Local(PathBuf::from(name)),
                 };
-
                 pkgid.replace(p);
             }
             n => anyhow::bail!(Error::TooManyCrates { n }),
@@ -527,6 +561,7 @@ impl Args {
             verbose,
 
             list,
+            show_private,
 
             no_features,
             show_deps,
@@ -568,6 +603,7 @@ FLAGS:
     -V, --version               Displays the program name and version
     -d, --deps                  Display dependencies for the crate
     -n, --no-features           Disable listing the features for the crate
+    -r, --restricted            When used on a local workspace, also included private packages
     -l, --list                  List all versions for the crate
     -s, --short                 Display only the name and latest version
     -v, --verbose               Print all leaf nodes and optional deps
@@ -583,7 +619,7 @@ OPTIONS:
 
 ARGS:
     <crate>                     The name of a remote crate to retrieve information for.
-                                Using this means you want a 'remote' crate.
+                                Or local path to a directory containing Cargo.toml, or Cargo.toml itself.
                                 This is exclusive with -p, --pkgid and with --manifest-path.
 "#;
 
@@ -605,6 +641,9 @@ ARGS:
 
         -n, --no-features
             Disable listing the features for the crate
+
+        -r, --restricted
+            When used on a local workspace, also included private packages
 
         -l, --list
             List all versions for the crate.
@@ -656,8 +695,12 @@ ARGS:
             When 'only' is provided, only yanked versions will be listed
 
     ARGS:
-        <crate>  The name of the remote crate to retrieve information for.
-                 Using this means you want a 'remote' crate.
+        <crate>  The name of the crate to retrieve information for.
+
+                 If this is a path to a directory containing a Cargo.toml,
+                 or the path to the Cargo.toml then it'll use that directory
+                 as the crate to operate one
+
                  This is exclusive with -p, --pkgid and with --manifest-path.
 "#;
 

@@ -4,29 +4,7 @@ use std::{
     io::{self, Write},
 };
 
-use super::Theme;
-
-#[derive(Debug, Copy, Clone)]
-struct Style {
-    pipe: &'static str,
-    branch: &'static str,
-    edge: &'static str,
-    right: &'static str,
-    empty: &'static str,
-}
-
-impl Default for Style {
-    #[inline]
-    fn default() -> Self {
-        Self {
-            pipe: "│ ",
-            edge: "└─ ",
-            branch: "├─ ",
-            right: "─ ",
-            empty: "   ",
-        }
-    }
-}
+use super::{Style, Theme};
 
 pub trait Item: Clone {
     type Child: Item;
@@ -53,22 +31,14 @@ impl Node {
         }
     }
 
-    pub fn empty<S>(data: S) -> Self
-    where
-        S: ToString,
-    {
+    pub fn add_child(&mut self, child: impl Into<Self>) {
+        self.children.push(child.into());
+    }
+
+    pub fn empty<S: ToString>(data: S) -> Self {
         Self {
             text: data.to_string(),
             children: vec![],
-        }
-    }
-}
-
-impl<T: ToString> From<T> for Node {
-    fn from(data: T) -> Self {
-        Self {
-            text: data.to_string(),
-            children: Vec::new(),
         }
     }
 }
@@ -85,39 +55,49 @@ impl Item for Node {
     }
 }
 
+impl<T: ToString> From<T> for Node {
+    fn from(data: T) -> Self {
+        Self {
+            text: data.to_string(),
+            children: Vec::new(),
+        }
+    }
+}
+
 pub trait Printer {
     fn print<W: Write + ?Sized>(self, writer: &mut W, theme: &Theme) -> io::Result<()>;
 }
 
-impl<T> Printer for T
-where
-    T: Item,
-{
+impl<T: Item> Printer for T {
     fn print<W: Write + ?Sized>(self, writer: &mut W, theme: &Theme) -> io::Result<()> {
         print(self, writer, theme)
     }
 }
 
-pub fn print<I, W>(item: I, writer: &mut W, theme: &Theme) -> io::Result<()>
-where
-    I: Item,
-    W: Write + ?Sized,
-{
-    fn print<I, W, L, C>(
-        item: &I,
-        writer: &mut W,
-        left: L,
-        child: C,
-        style: &Style,
+pub fn print(item: impl Item, writer: &mut (impl Write + ?Sized), theme: &Theme) -> io::Result<()> {
+    let appearance = Appearance {
+        style: &Style::default(),
+        theme,
+    };
+
+    return print(&item, writer, "", "", &appearance, 0);
+
+    // impl below
+    struct Appearance<'a, 'b> {
+        theme: &'a Theme,
+        style: &'b Style,
+    }
+
+    fn print(
+        item: &impl Item,
+        writer: &mut (impl Write + ?Sized),
+        left: impl Display,
+        child: impl Display,
+        appearance: &Appearance,
         depth: usize,
-        theme: &Theme,
-    ) -> std::io::Result<()>
-    where
-        I: Item,
-        W: Write + ?Sized,
-        L: Display,
-        C: Display,
-    {
+    ) -> std::io::Result<()> {
+        let Appearance { style, theme } = appearance;
+
         write!(writer, "{}", theme.tree.paint(left))?;
         item.write(writer)?;
         writeln!(writer)?;
@@ -132,28 +112,21 @@ where
                     writer,
                     &left_prefix,
                     &right_prefix,
-                    style,
+                    appearance,
                     depth + 1,
-                    theme,
                 )?;
             }
 
-            // TODO we can get rid of these 2 allocations if we change the signature
-            let left_prefix = format!("{}{}", child, style.edge);
-            let right_prefix = format!("{}{}", child, style.empty);
             print(
                 last,
                 writer,
-                left_prefix,
-                right_prefix,
-                style,
+                format!("{}{}", child, style.edge),
+                format!("{}{}", child, style.last),
+                appearance,
                 depth + 1,
-                theme,
             )?;
         }
 
         Ok(())
     }
-
-    print(&item, writer, "", "", &Style::default(), 0, theme)
 }

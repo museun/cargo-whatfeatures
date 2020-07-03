@@ -1,33 +1,14 @@
 use cargo_whatfeatures::*;
 
-enum Offline {
-    List,
-    Latest,
-    CacheMiss,
-}
-
-impl Offline {
-    fn to_error(&self) -> anyhow::Error {
-        let err = match self {
-            Self::List => {
-                "must be able to connect to https://crates.io to list versions"
-            }
-            Self::Latest =>{
-                "must be able to connect to https://crates.io to get the latest version"
-            } ,
-            Self::CacheMiss => {
-                "crate not found in local registry or cache. must be able to connect to https://crates.io to fetch it"
-            },
-        };
-        anyhow::anyhow!(err)
-    }
-}
-
 fn main() -> anyhow::Result<()> {
     let mut args = Args::parse()?;
 
-    let mut stdout = std::io::stdout();
-    let mut printer = Printer::new(&mut stdout);
+    let options = cargo_whatfeatures::Options {
+        print_features: !args.no_features,
+        show_deps: args.show_deps,
+        verbose: args.verbose,
+        show_private: args.show_private,
+    };
 
     let client = if args.offline {
         None
@@ -40,7 +21,7 @@ fn main() -> anyhow::Result<()> {
     if args.list {
         let versions = client
             .as_ref()
-            .ok_or_else(|| Offline::List.to_error())?
+            .ok_or_else(|| OfflineError::List.to_error())?
             .list_versions(name)
             .map_err(|_| anyhow::anyhow!("cannot find a crate matching '{}'", &args.pkgid))?;
 
@@ -52,106 +33,77 @@ fn main() -> anyhow::Result<()> {
             args.show_yanked.replace(YankStatus::Include);
         }
 
-        printer.write_versions(&versions, args.show_yanked.unwrap_or_default())?;
-        return Ok(());
+        return VersionPrinter::new(&mut std::io::stdout(), options)
+            .write_versions(&versions, args.show_yanked.unwrap_or_default())
+            .map_err(Into::into);
     }
 
-    let (name, version, mut features) = match &args.pkgid {
-        PkgId::Remote {
-            name,
-            semver: Some(semver),
-        } => (name.clone(), semver.clone(), None),
+    let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client)? {
+        Lookup::Partial { name, version } => {
+            if args.name_only {
+                return VersionPrinter::new(&mut std::io::stdout(), options)
+                    .write_latest(&name, &version)
+                    .map_err(Into::into);
+            }
 
-        PkgId::Remote { name, .. } => {
-            let c = client
-                .as_ref()
-                .ok_or_else(|| Offline::Latest.to_error())?
-                .get_latest(name)
-                .map_err(|_| {
-                    anyhow::anyhow!(
-                        "cannot find a crate matching '{}'. maybe the latest version was yanked?",
-                        &args.pkgid
-                    )
-                })?;
+            let crate_ = match Registry::from_local()?.get(&name, &version) {
+                Some(crate_) => crate_.clone(),
+                None => match client
+                    .as_ref()
+                    .ok_or_else(|| OfflineError::CacheMiss.to_error())?
+                    .cache_crate(&name, &version)
+                {
+                    Ok(res) => res,
+                    Err(_err) => return cannot_lookup(&args.pkgid),
+                },
+            };
 
-            (c.name, c.version, None)
+            if let YankState::Yanked = crate_.yanked {
+                use yansi::*;
+                println!(
+                    "{}. {}/{} has been yanked on crates.io",
+                    Paint::yellow("WARNING"),
+                    crate_.name,
+                    crate_.version
+                );
+            }
+
+            crate_.get_features()?
         }
+        Lookup::Workspace(workspace) => {
+            if args.name_only {
+                let mut packages = workspace
+                    .map
+                    .values()
+                    .map(|pkg| (&pkg.name, &pkg.version, pkg.published))
+                    .collect::<Vec<_>>();
+                packages.sort_by(|(l, ..), (r, ..)| l.cmp(r));
 
-        PkgId::Local(path) => {
-            let features = Crate::from_path(path)?;
-            (
-                features.name.to_string(),
-                features.version.to_string(),
-                Some(features),
-            )
+                return VersionPrinter::new(&mut std::io::stdout(), options)
+                    .write_many_versions(packages)
+                    .map_err(Into::into);
+            }
+            workspace
         }
     };
 
-    if args.name_only {
-        printer.write_latest(&name, &version)?;
-        return Ok(());
-    }
-
-    if !args.pkgid.is_local() {
-        let crate_ = match Registry::from_local()?.get(&name, &version) {
-            Some(crate_) => crate_.clone(),
-            None => match client
-                .as_ref()
-                .ok_or_else(|| Offline::CacheMiss.to_error())?
-                .cache_crate(&name, &version)
-            {
-                Ok(res) => res,
-                Err(_err) => {
-                    let mut out = format!("cannot lookup crate '{}'.", &args.pkgid);
-                    if let PkgId::Remote {
-                        semver: Some(semver),
-                        ..
-                    } = args.pkgid
-                    {
-                        out.push_str(&format!(
-                            " perhaps this is an invalid semver: '{}'?",
-                            semver
-                        ));
-                    }
-                    anyhow::bail!(out);
-                }
-            },
-        };
-
-        if let YankState::Yanked = crate_.yanked {
-            use yansi::*;
-            println!(
-                "{}. {}/{} has been yanked on crates.io",
-                Paint::yellow("WARNING"),
-                crate_.name,
-                crate_.version
-            );
-        }
-
-        features.replace(crate_.get_features()?);
-    }
-
-    let features = match features {
-        Some(features) => features,
-        None => anyhow::bail!("cannot lookup features for '{}'", &args.pkgid),
-    };
-
-    printer.write_header(&features)?;
-
-    // this double negative is weird
-    let print_features = !args.no_features;
-
-    if print_features {
-        printer.write_features(&features, args.verbose)?;
-        if args.verbose && !args.show_deps {
-            printer.write_opt_deps(&features, args.verbose)?;
-        }
-    }
-
-    if args.show_deps {
-        printer.write_deps(&features, args.verbose)?;
-        printer.write_opt_deps(&features, args.verbose)?;
-    }
+    WorkspacePrinter::new(&mut std::io::stdout(), workspace, options).print()?;
 
     Ok(())
+}
+
+fn cannot_lookup(pkgid: &PkgId) -> anyhow::Result<()> {
+    let mut out = format!("cannot lookup crate '{}'.", &pkgid);
+    if let PkgId::Remote {
+        semver: Some(semver),
+        ..
+    } = pkgid
+    {
+        out.push_str(&format!(
+            " perhaps this is an invalid semver: '{}'?",
+            semver
+        ));
+    }
+
+    anyhow::bail!(out)
 }

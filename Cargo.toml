@@ -22,13 +22,13 @@ rustls     = ["attohttpc/tls-rustls"]
 
 [dependencies]
 anyhow              = "1.0.31"
-attohttpc           = { version = "0.14.0", default-features = false, features = ["json", "compress"] }
+attohttpc           = { version = "0.15.0", default-features = false, features = ["json", "compress"] }
 cargo_metadata      = "0.10.0"
 crate_version_parse = "0.2.0"
 directories-next    = "1.0.1"
-flate2              = "1.0.14"
+flate2              = "1.0.16"
 home                = "0.5.3"
-pico-args           = "0.3.2"
+pico-args           = "0.3.3"
 serde               = { version = "1.0.114", features = ["derive"] }
 tar                 = "0.4.29"
 yansi               = "0.5.0"

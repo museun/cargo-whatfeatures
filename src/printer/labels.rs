@@ -1,5 +1,3 @@
-pub const YANKED: &str = "yanked";
-
 pub const NO_FEATURES: &str = "no features";
 pub const DEFAULT: &str = "default";
 pub const NO_DEFAULT_FEATURES: &str = "no default features";
