@@ -49,7 +49,7 @@ where
             .filter_map(|f| make_child_node(f, &options, &theme));
 
         match list.len() {
-            0 => panic!("empty tree"),
+            0 => unreachable!("empty tree"),
             1 => nodes.next().unwrap().print(self.writer, &theme),
             _ => {
                 let name = format!(
@@ -65,8 +65,8 @@ where
 
 fn make_child_node(features: &Features, options: &Options, theme: &Theme) -> Option<Node> {
     let Options {
-        print_features,
-        show_deps,
+        print_features, // not -n
+        show_deps,      // -d
         verbose,
         show_private,
     } = *options;
@@ -97,7 +97,7 @@ fn make_child_node(features: &Features, options: &Options, theme: &Theme) -> Opt
         parent.add_child(node);
     }
 
-    if verbose {
+    if verbose || (!print_features && show_deps) {
         let node = make_opt_deps_node(features, theme, verbose);
         parent.add_child(node);
     }
