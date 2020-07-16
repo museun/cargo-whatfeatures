@@ -144,19 +144,29 @@ impl Crate {
     pub fn from_path(path: impl Into<PathBuf>) -> anyhow::Result<Workspace> {
         let path = path.into();
 
-        let mut name = path.clone();
-        let name = if path.is_dir() {
-            name.iter().last().unwrap()
-        } else {
-            name.pop();
-            name.iter().last().unwrap()
-        };
+        fn find_parent(mut path: PathBuf) -> PathBuf {
+            while !path.is_dir() {
+                if !path.pop() {
+                    break;
+                }
+            }
+            path
+        }
+
+        let name = find_parent(std::fs::canonicalize(path.clone())?);
+        let name = name
+            .iter()
+            .last()
+            .unwrap_or_else(|| path.as_ref())
+            .to_string_lossy();
+
+        let path = find_parent(path.clone());
 
         cargo_metadata::MetadataCommand::new()
             .current_dir(&path)
             .no_deps()
             .exec()
-            .map(|md| Workspace::parse(md, name.to_str().unwrap()))
+            .map(|md| Workspace::parse(md, &name))
             .map_err(Into::into)
     }
 }
