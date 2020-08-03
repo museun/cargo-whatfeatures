@@ -7,6 +7,9 @@ pub struct Theme {
     pub version: Color,
     pub yanked: Color,
 
+    pub created_at: Color,
+    pub license: Color,
+
     pub is_not_published: Color,
 
     pub no_default_features: Color,
@@ -50,6 +53,9 @@ impl Default for Theme {
             name: Color::RGB(255, 192, 128),
             version: Color::RGB(192, 192, 0),
             yanked: Color::RGB(255, 0, 0),
+
+            created_at: Color::RGB(255, 255, 255),
+            license: Color::RGB(255, 255, 255),
 
             is_not_published: Color::RGB(0, 153, 238),
 

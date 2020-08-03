@@ -34,15 +34,21 @@ fn main() -> anyhow::Result<()> {
         }
 
         return VersionPrinter::new(&mut std::io::stdout(), options)
-            .write_versions(&versions, args.show_yanked.unwrap_or_default())
+            .write_versions(
+                &versions,
+                args.show_yanked.unwrap_or_default(),
+                args.verbose,
+            )
             .map_err(Into::into);
     }
 
     let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client)? {
-        Lookup::Partial { name, version } => {
+        Lookup::Partial(vers) => {
+            let Version { name, version, .. } = &vers;
+
             if args.name_only {
                 return VersionPrinter::new(&mut std::io::stdout(), options)
-                    .write_latest(&name, &version)
+                    .write_latest_version(&vers, args.verbose)
                     .map_err(Into::into);
             }
 
@@ -70,7 +76,9 @@ fn main() -> anyhow::Result<()> {
 
             crate_.get_features()?
         }
+
         Lookup::Workspace(workspace) => {
+            // TODO show if the version is published
             if args.name_only {
                 let mut packages = workspace
                     .map

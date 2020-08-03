@@ -11,7 +11,7 @@ mod registry;
 mod util;
 
 #[doc(inline)]
-pub use client::Client;
+pub use client::{Client, Version};
 
 #[doc(inline)]
 pub use registry::{Crate, Registry, YankState};
@@ -57,12 +57,7 @@ impl OfflineError {
 /// Lookup result
 pub enum Lookup {
     /// A partial lookup -- this has to cache the crate
-    Partial {
-        /// Name of the crate
-        name: String,
-        /// Version of the crate
-        version: String,
-    },
+    Partial(Version),
     /// A local workspace
     Workspace(features::Workspace),
 }
@@ -70,26 +65,19 @@ pub enum Lookup {
 /// Find this 'pkgid'
 pub fn lookup(pkg_id: &PkgId, client: &Option<Client>) -> anyhow::Result<Lookup> {
     match pkg_id {
-        // a specific version was provided
-        PkgId::Remote {
-            name,
-            semver: Some(semver),
-        } => Ok(Lookup::Partial {
-            name: name.clone(),
-            version: semver.clone(),
-        }),
-
         // lookup the latest version
-        PkgId::Remote { name, .. } => {
+        PkgId::Remote { name, semver } => {
             let client = client
                 .as_ref()
                 .ok_or_else(|| OfflineError::Latest.to_error())?;
-            let pkg = client.get_latest(name).map_err(|_| cannot_find(pkg_id))?;
 
-            Ok(Lookup::Partial {
-                name: pkg.name,
-                version: pkg.version,
-            })
+            let pkg = match semver {
+                Some(semver) => client.get_version(name, semver),
+                None => client.get_latest(name),
+            }
+            .map_err(|_| cannot_find(pkg_id))?;
+
+            Ok(Lookup::Partial(pkg))
         }
 
         // otherwise load it from the local path
@@ -99,7 +87,7 @@ pub fn lookup(pkg_id: &PkgId, client: &Option<Client>) -> anyhow::Result<Lookup>
 
 fn cannot_find(pkg_id: &PkgId) -> anyhow::Error {
     anyhow::anyhow!(
-        "cannot find a crate matching '{}'. maybe the latest version was yanked?",
+        "cannot find a crate matching '{}'. maybe it was yanked?",
         pkg_id
     )
 }
