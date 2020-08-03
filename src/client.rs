@@ -39,6 +39,14 @@ impl Client {
             .ok_or_else(|| anyhow::anyhow!("no available version for: {}", crate_name))
     }
 
+    /// Get the latest version for this crate
+    pub fn get_version(&self, crate_name: &str, semver: &str) -> anyhow::Result<Version> {
+        self.list_versions(crate_name)?
+            .into_iter()
+            .find(|s| s.version == semver)
+            .ok_or_else(|| anyhow::anyhow!("no available version for: {} = {}", crate_name, semver))
+    }
+
     /// Get all versions for this crate
     pub fn list_versions(&self, crate_name: &str) -> anyhow::Result<Vec<Version>> {
         #[derive(serde::Deserialize)]
@@ -144,6 +152,71 @@ pub struct Version {
     pub version: String,
     /// Whether this version was yanked
     pub yanked: bool,
+    /// The primary license of the crate
+    pub license: String,
+    /// When the crate was created
+    #[serde(deserialize_with = "time02_parse_timestamp")]
+    pub created_at: time::OffsetDateTime,
 
     dl_path: String,
+}
+
+impl Version {
+    pub fn format_verbose_time(&self) -> String {
+        self.created_at.format("%F %0H:%M:%S %z")
+    }
+
+    pub fn format_approx_time_span(&self) -> String {
+        let d = time::OffsetDateTime::now_utc() - self.created_at;
+        macro_rules! try_time {
+            ($($expr:tt => $class:expr)*) => {{
+                $(
+                    match d.$expr() {
+                        0 => {}
+                        1 => return format!("1 {} ago", $class),
+                        d => return format!("{} {}s ago", d, $class),
+                    }
+                )*
+                String::from("just now")
+            }};
+        }
+
+        try_time! {
+            whole_weeks   => "week"
+            whole_days    => "day"
+            whole_hours   => "hour"
+            whole_minutes => "minute"
+            whole_seconds => "second"
+        }
+    }
+}
+
+struct RelativeTimeVisitor;
+impl<'de> serde::de::Visitor<'de> for RelativeTimeVisitor {
+    type Value = time::OffsetDateTime;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a string")
+    }
+
+    fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
+        let mut iter = v.splitn(2, '.');
+        let head = iter
+            .next()
+            .ok_or_else(|| E::custom("timestamp is malformed"))?;
+
+        let ts = format!("{}+0000", head);
+        time::OffsetDateTime::parse(&ts, "%FT%T%z").map_err(E::custom)
+    }
+
+    fn visit_string<E: serde::de::Error>(self, v: String) -> Result<Self::Value, E> {
+        self.visit_str(v.as_str())
+    }
+}
+
+fn time02_parse_timestamp<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    deserializer.deserialize_string(RelativeTimeVisitor)
 }

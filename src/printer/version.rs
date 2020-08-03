@@ -23,32 +23,41 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
         &mut self,
         versions: &[Version],
         yank: YankStatus,
+        verbose: bool,
     ) -> std::io::Result<()> {
-        fn write_yanked(
-            version: &Version,
-            writer: &mut impl Write,
-            theme: &Theme,
-        ) -> std::io::Result<()> {
-            writeln!(
-                writer,
-                "{} = {} # yanked",
-                theme.yanked.paint(&version.name),
-                theme.yanked.paint(&version.version),
-            )
-        }
-
         use YankStatus::*;
-        versions
+        let output = versions
             .iter()
             .filter(|ver| match (yank, ver.yanked) {
                 (Exclude, true) | (Only, false) => false,
                 _ => true,
             })
-            .map(|ver| match yank {
-                Exclude => self.write_latest(&ver.name, &ver.version),
-                Only => write_yanked(ver, &mut self.writer, &self.theme),
-                Include if ver.yanked => write_yanked(ver, &mut self.writer, &self.theme),
-                Include => self.write_latest(&ver.name, &ver.version),
+            .map(|version| match yank {
+                Exclude => self.write_latest(version, verbose),
+                Only => self.write_yanked(version, verbose),
+                Include if version.yanked => self.write_yanked(version, verbose),
+                Include => self.write_latest(version, verbose),
+            })
+            .collect::<Vec<_>>();
+
+        let left_max = output
+            .iter()
+            .map(|&VersionOutput { left_len, .. }| left_len)
+            .max()
+            .unwrap_or_default();
+
+        let padding = " ".repeat(left_max);
+
+        output
+            .iter()
+            .map(|v| {
+                writeln!(
+                    self.writer,
+                    "{}{} # {}",
+                    v.left,
+                    &padding[v.left_len..],
+                    v.right
+                )
             })
             .collect()
     }
@@ -87,13 +96,74 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
         Ok(())
     }
 
-    /// Write the latest crate name and version
-    pub fn write_latest(&mut self, name: &str, version: &str) -> std::io::Result<()> {
-        writeln!(
-            self.writer,
-            "{} = {}",
-            self.theme.name.paint(&name),
-            self.theme.version.paint(&version),
-        )
+    pub fn write_latest_version(
+        &mut self,
+        version: &Version,
+        verbose: bool,
+    ) -> std::io::Result<()> {
+        let VersionOutput { left, right, .. } = self.write_latest(version, verbose);
+        writeln!(self.writer, "{} # {}", left, right)
     }
+
+    fn write_yanked(&mut self, version: &Version, verbose: bool) -> VersionOutput {
+        let left = format!(
+            "{} = {}",
+            self.theme.yanked.paint(&version.name),
+            self.theme.yanked.paint(&version.version),
+        );
+
+        let right = if !verbose {
+            format!(
+                "{} -- yanked",
+                self.theme
+                    .created_at
+                    .paint(&version.format_approx_time_span()),
+            )
+        } else {
+            format!(
+                "{} -- yanked",
+                self.theme.created_at.paint(&version.format_verbose_time()),
+            )
+        };
+
+        VersionOutput {
+            left_len: version.name.len() + version.version.len() + 3,
+            left,
+            right,
+        }
+    }
+
+    fn write_latest(&mut self, version: &Version, verbose: bool) -> VersionOutput {
+        let left = format!(
+            "{} = {}",
+            self.theme.name.paint(&version.name),
+            self.theme.version.paint(&version.version),
+        );
+
+        let right = if !verbose {
+            format!(
+                "{}",
+                self.theme
+                    .created_at
+                    .paint(&version.format_approx_time_span()),
+            )
+        } else {
+            format!(
+                "{}",
+                self.theme.created_at.paint(&version.format_verbose_time()),
+            )
+        };
+
+        VersionOutput {
+            left_len: version.name.len() + version.version.len() + 3,
+            left,
+            right,
+        }
+    }
+}
+
+pub struct VersionOutput {
+    left_len: usize,
+    left: String,
+    right: String,
 }
