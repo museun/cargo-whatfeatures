@@ -21,9 +21,9 @@ native-tls = ["attohttpc/tls"]
 rustls     = ["attohttpc/tls-rustls"]
 
 [dependencies]
-anyhow              = "1.0.31"
+anyhow              = "1.0.32"
 attohttpc           = { version = "0.15.0", default-features = false, features = ["json", "compress"] }
-cargo_metadata      = "0.10.0"
+cargo_metadata      = "0.11.1"
 crate_version_parse = "0.2.0"
 directories-next    = "1.0.1"
 flate2              = "1.0.16"
