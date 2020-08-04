@@ -94,7 +94,7 @@ impl Features {
 /// A crate dependency
 #[derive(Debug, Clone)]
 pub struct Dependency {
-    /// The name fo the dependency
+    /// The name of the dependency
     pub name: String,
     /// The required version of the dependency
     pub req: String,

@@ -78,7 +78,6 @@ fn main() -> anyhow::Result<()> {
         }
 
         Lookup::Workspace(workspace) => {
-            // TODO show if the version is published
             if args.name_only {
                 let mut packages = workspace
                     .map

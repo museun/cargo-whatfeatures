@@ -650,7 +650,7 @@ ARGS:
             When using the `-y` option, yanked crates can be filtered.
 
         -s, --short
-            Display only the name and latest version, such as foo/0.1.2
+            Display only the name and latest version, such as foo = 0.1.2
 
         -v, --verbose
             When this is enabled, all 'implied' features will be listed.
@@ -681,7 +681,7 @@ ARGS:
             *NOTE* When NO_COLOR is set to any value, all colors will be disabled
 
         -p, --pkgid <semver>
-            A specific version to lookup. e.g. 0.7.1
+            A specific version to lookup. e.g. foo:0.7.1
             If this is not provided, then the latest crate is used.
 
         --manifest-path <PATH>
