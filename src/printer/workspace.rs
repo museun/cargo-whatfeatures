@@ -77,13 +77,13 @@ fn make_child_node(features: &Features, options: &Options, theme: &Theme) -> Opt
 
     let header = if features.published {
         format!(
-            "{} = {}",
+            "{} = \"{}\"",
             theme.name.paint(&features.name),
             theme.version.paint(&features.version),
         )
     } else {
         format!(
-            "{} = {} {}",
+            "{} = \"{}\" {}",
             theme.name.paint(&features.name),
             theme.version.paint(&features.version),
             theme.is_not_published.paint("(restricted)")
@@ -295,7 +295,7 @@ fn format_dep(dep: &Dependency, theme: &Theme) -> String {
     if let Some(renamed) = dep.rename.as_deref() {
         let renamed = format!("(renamed to {})", theme.renamed_target.paint(renamed));
         return format!(
-            "{} = {} {}",
+            "{} = \"{}\" {}",
             theme.name.paint(&dep.name),
             theme.version.paint(&dep.req),
             theme.renamed.paint(renamed).wrap()
@@ -303,7 +303,7 @@ fn format_dep(dep: &Dependency, theme: &Theme) -> String {
     }
 
     format!(
-        "{} = {} ",
+        "{} = \"{}\" ",
         theme.name.paint(&dep.name),
         theme.version.paint(&dep.req),
     )

@@ -73,14 +73,14 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
         for (name, version, published) in list {
             let header = if published {
                 format!(
-                    "{: <max$} = {}",
+                    "{: <max$} = \"{}\"",
                     theme.name.paint(&name),
                     theme.version.paint(&version),
                     max = max,
                 )
             } else if self.options.show_private {
                 format!(
-                    "{: <max$} = {} {}",
+                    "{: <max$} = \"{}\" {}",
                     theme.name.paint(&name),
                     theme.version.paint(&version),
                     theme.is_not_published.paint("(restricted)"),
@@ -107,7 +107,7 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
 
     fn write_yanked(&mut self, version: &Version, verbose: bool) -> VersionOutput {
         let left = format!(
-            "{} = {}",
+            "{} = \"{}\"",
             self.theme.yanked.paint(&version.name),
             self.theme.yanked.paint(&version.version),
         );
@@ -135,7 +135,7 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
 
     fn write_latest(&mut self, version: &Version, verbose: bool) -> VersionOutput {
         let left = format!(
-            "{} = {}",
+            "{} = \"{}\"",
             self.theme.name.paint(&version.name),
             self.theme.version.paint(&version.version),
         );
