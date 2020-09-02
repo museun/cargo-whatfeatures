@@ -26,7 +26,7 @@ where
     pub fn new(writer: &'a mut W, workspace: Workspace, options: Options) -> Self {
         Self {
             writer,
-            theme: Theme::default(),
+            theme: options.theme,
             workspace,
             options,
         }
@@ -44,9 +44,7 @@ where
 
         let (options, theme) = (self.options, self.theme);
 
-        let mut nodes = list
-            .iter()
-            .filter_map(|f| make_child_node(f, &options, &theme));
+        let mut nodes = list.iter().filter_map(|f| make_child_node(f, &options));
 
         match list.len() {
             0 => unreachable!("empty tree"),
@@ -63,12 +61,13 @@ where
     }
 }
 
-fn make_child_node(features: &Features, options: &Options, theme: &Theme) -> Option<Node> {
+fn make_child_node(features: &Features, options: &Options) -> Option<Node> {
     let Options {
         print_features, // not -n
         show_deps,      // -d
         verbose,
         show_private,
+        theme,
     } = *options;
 
     if !features.published && !show_private {
@@ -93,17 +92,17 @@ fn make_child_node(features: &Features, options: &Options, theme: &Theme) -> Opt
     let mut parent = Node::empty(header);
 
     if print_features {
-        let node = make_features_node(features, theme, verbose);
+        let node = make_features_node(features, &theme, verbose);
         parent.add_child(node);
     }
 
     if verbose || (!print_features && show_deps) {
-        let node = make_opt_deps_node(features, theme, verbose);
+        let node = make_opt_deps_node(features, &theme, verbose);
         parent.add_child(node);
     }
 
     if show_deps {
-        let node = make_deps_node(features, theme, verbose);
+        let node = make_deps_node(features, &theme, verbose);
         parent.add_child(node)
     }
 

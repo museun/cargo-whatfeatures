@@ -8,6 +8,7 @@ fn main() -> anyhow::Result<()> {
         show_deps: args.show_deps,
         verbose: args.verbose,
         show_private: args.show_private,
+        theme: args.theme,
     };
 
     let client = if args.offline {

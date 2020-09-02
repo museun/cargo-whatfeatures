@@ -23,4 +23,5 @@ pub struct Options {
     pub show_private: bool,
     pub show_deps: bool,
     pub verbose: bool,
+    pub theme: Theme,
 }

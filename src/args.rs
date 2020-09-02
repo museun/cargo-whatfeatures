@@ -1,4 +1,4 @@
-use crate::printer::YankStatus;
+use crate::{printer::YankStatus, Theme};
 use pico_args::Arguments;
 use std::path::{Path, PathBuf};
 
@@ -345,6 +345,9 @@ pub struct Args {
 
     /// Don't try to connect to the internet
     pub offline: bool,
+
+    /// The theme to use
+    pub theme: Theme,
 }
 
 impl Args {
@@ -415,6 +418,16 @@ impl Args {
         }
 
         Ok(())
+    }
+
+    fn try_parse_theme(args: &mut Arguments) -> anyhow::Result<Theme> {
+        let theme_name: Option<String> = args.opt_value_from_str("--theme")?;
+        Ok(match theme_name.map(|s| s.to_lowercase()).as_deref() {
+            Some("colorful") => Theme::colorful(),
+            Some("basic") => Theme::basic(),
+            None => Theme::default(),
+            _ => anyhow::bail!("invalid theme name"),
+        })
     }
 
     fn verify_flags(this: Self) -> anyhow::Result<Self> {
@@ -517,6 +530,8 @@ impl Args {
         let offline = args.contains(["-o", "--offline"]);
         let verbose = args.contains(["-v", "--verbose"]);
 
+        let theme = Self::try_parse_theme(&mut args)?;
+
         let manifest_path: Option<PathBuf> = args.opt_value_from_str("--manifest-path")?;
         let mut pkgid: Option<PkgId> = args.opt_value_from_str(["-p", "--pkgid"])?;
 
@@ -571,6 +586,8 @@ impl Args {
             pkgid: pkgid.unwrap(),
 
             offline,
+
+            theme,
         })
     }
 }
@@ -610,6 +627,7 @@ FLAGS:
     -o, --offline               Don't connect to the internet, limits the availities of this.
     --print-cache-dir           Prints out the path to the cache directory
     --purge                     Purges the local cache
+    --theme                     Use a different theme
 
 OPTIONS:
     -c, --color <WHEN>          Attempts to use colors when printing as text [default: auto]
@@ -674,6 +692,9 @@ ARGS:
             * Linux: $XDG_CACHE_HOME/museun/whatfeatures
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
+
+        --theme [basic, colorful]
+            use this provided theme
 
     OPTIONS:
         -c, --color [always, auto, never]

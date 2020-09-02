@@ -13,7 +13,7 @@ impl<'a, W: Write + ?Sized> VersionPrinter<'a, W> {
     pub fn new(writer: &'a mut W, options: Options) -> Self {
         Self {
             writer,
-            theme: Theme::default(),
+            theme: options.theme,
             options,
         }
     }
