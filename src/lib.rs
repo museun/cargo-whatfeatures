@@ -43,7 +43,7 @@ impl OfflineError {
                 "must be able to connect to https://crates.io to list versions"
             }
             Self::Latest =>{
-                "must be able to connect to https://crates.io to get the latest version"
+                "cannot find that crate cached, you must be able to connect to https://crates.io to get the latest version"
             } ,
             Self::CacheMiss => {
                 "crate not found in local registry or cache. must be able to connect to https://crates.io to fetch it"
@@ -58,6 +58,8 @@ impl OfflineError {
 pub enum Lookup {
     /// A partial lookup -- this has to cache the crate
     Partial(Version),
+    /// The latest version from the cache
+    LocalCache(features::Workspace),
     /// A local workspace
     Workspace(features::Workspace),
 }
@@ -67,9 +69,16 @@ pub fn lookup(pkg_id: &PkgId, client: &Option<Client>) -> anyhow::Result<Lookup>
     match pkg_id {
         // lookup the latest version
         PkgId::Remote { name, semver } => {
-            let client = client
-                .as_ref()
-                .ok_or_else(|| OfflineError::Latest.to_error())?;
+            let client = match &client {
+                Some(client) => client,
+                None => {
+                    return Registry::from_local()?
+                        .maybe_latest(&name)
+                        .ok_or_else(|| OfflineError::Latest.to_error())?
+                        .get_features()
+                        .map(Lookup::LocalCache)
+                }
+            };
 
             let pkg = match semver {
                 Some(semver) => client.get_version(name, semver),

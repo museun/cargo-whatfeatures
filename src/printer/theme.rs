@@ -2,6 +2,9 @@ use yansi::Color;
 
 #[derive(Copy, Clone)]
 pub struct Theme {
+    pub warning: Color,
+    pub error: Color,
+
     pub workspace: Color,
     pub name: Color,
     pub version: Color,
@@ -70,6 +73,9 @@ impl Default for Theme {
 }
 
 const DEFAULT_THEME: Theme = Theme {
+    warning: Color::RGB(255, 255, 0),
+    error: Color::RGB(255, 0, 0),
+
     workspace: Color::RGB(255, 192, 192),
 
     name: Color::RGB(255, 192, 128),
@@ -115,6 +121,9 @@ const DEFAULT_THEME: Theme = Theme {
 };
 
 const BASIC_THEME: Theme = Theme {
+    warning: Color::RGB(255, 255, 0),
+    error: Color::RGB(255, 0, 0),
+
     workspace: Color::RGB(255, 192, 192),
 
     name: Color::RGB(255, 192, 128),

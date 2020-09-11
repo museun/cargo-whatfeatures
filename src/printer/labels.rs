@@ -15,3 +15,6 @@ pub const NO_BUILD_DEPENDENCIES: &str = "no build dependencies";
 pub const REQUIRED_DEPENDENCIES: &str = "required dependencies";
 
 pub const HAS_ENABLED_FEATURES: &str = "(has enabled features)";
+
+pub const POSSIBLY_OLD_CRATE: &str =
+    "this crate was from the cache and possibly isn't the latest version.";

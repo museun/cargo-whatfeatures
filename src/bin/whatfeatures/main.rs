@@ -1,8 +1,6 @@
 use cargo_whatfeatures::*;
 
-fn main() -> anyhow::Result<()> {
-    let mut args = Args::parse()?;
-
+fn real_main(mut args: Args) -> anyhow::Result<()> {
     let options = cargo_whatfeatures::Options {
         print_features: !args.no_features,
         show_deps: args.show_deps,
@@ -43,6 +41,8 @@ fn main() -> anyhow::Result<()> {
             .map_err(Into::into);
     }
 
+    let mut out = std::io::stdout();
+
     let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client)? {
         Lookup::Partial(vers) => {
             let Version { name, version, .. } = &vers;
@@ -78,24 +78,51 @@ fn main() -> anyhow::Result<()> {
             crate_.get_features()?
         }
 
-        Lookup::Workspace(workspace) => {
+        pkg @ Lookup::LocalCache(..) | pkg @ Lookup::Workspace(..) => {
+            let local = matches!(pkg, Lookup::LocalCache{..});
+            let pkg = match pkg {
+                Lookup::LocalCache(pkg) | Lookup::Workspace(pkg) => pkg,
+                _ => unreachable!(),
+            };
+
+            if local {
+                use std::io::Write as _;
+                let msg = args.theme.warning.paint(format!(
+                    "WARNING: {}",
+                    cargo_whatfeatures::labels::POSSIBLY_OLD_CRATE
+                ));
+                writeln!(out, "{}", msg)?;
+            }
+
             if args.name_only {
-                let mut packages = workspace
+                let mut packages = pkg
                     .map
                     .values()
                     .map(|pkg| (&pkg.name, &pkg.version, pkg.published))
                     .collect::<Vec<_>>();
                 packages.sort_by(|(l, ..), (r, ..)| l.cmp(r));
 
-                return VersionPrinter::new(&mut std::io::stdout(), options)
-                    .write_many_versions(packages)
-                    .map_err(Into::into);
+                let mut writer = VersionPrinter::new(&mut out, options);
+
+                writer.write_many_versions(packages)?;
+                return Ok(());
             }
-            workspace
+            pkg
         }
     };
 
     WorkspacePrinter::new(&mut std::io::stdout(), workspace, options).print()?;
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    let args = Args::parse()?;
+    let theme = args.theme;
+
+    if let Err(err) = real_main(args) {
+        eprintln!("{}", theme.error.paint(format!("ERROR: {}", err)));
+        std::process::exit(1)
+    }
 
     Ok(())
 }
