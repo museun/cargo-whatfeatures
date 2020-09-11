@@ -25,7 +25,7 @@ See https://no-color.org/
 ## Usage
 ```
 cargo-whatfeatures 0.9.2
-he `whatfeatures` command
+The `whatfeatures` command
 
     USAGE:
         cargo whatfeatures [FLAGS] [OPTIONS] <crate>

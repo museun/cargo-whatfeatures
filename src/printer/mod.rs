@@ -1,5 +1,6 @@
+pub mod labels;
+
 mod deps;
-mod labels;
 mod tree;
 
 mod style;

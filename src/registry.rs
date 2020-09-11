@@ -83,6 +83,15 @@ impl Registry {
             .find(|Crate { name, version, .. }| name == crate_name && version == crate_version)
     }
 
+    /// Tries to the the latest version from the cached registry
+    pub fn maybe_latest(&self, crate_name: &str) -> Option<&Crate> {
+        self.cached
+            .iter()
+            .chain(self.local.iter())
+            .filter(|Crate { name, .. }| name == crate_name)
+            .max_by(|Crate { version: left, .. }, Crate { version: right, .. }| left.cmp(&right))
+    }
+
     /// Purge the local cache, returning how many crates it removed
     pub fn purge_local_cache(&mut self) -> anyhow::Result<usize> {
         let mut count = 0;
