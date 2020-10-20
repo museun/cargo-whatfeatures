@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
     let theme = args.theme;
 
     if let Err(err) = real_main(args) {
-        eprintln!("{}", theme.error.paint(format!("ERROR: {}", err)));
+        eprintln!("{}: {}", theme.error.paint("ERROR"), err);
         std::process::exit(1)
     }
 
