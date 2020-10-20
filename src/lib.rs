@@ -65,7 +65,7 @@ pub enum Lookup {
 }
 
 /// Find this 'pkgid'
-pub fn lookup(pkg_id: &PkgId, client: &Option<Client>) -> anyhow::Result<Lookup> {
+pub fn lookup(pkg_id: &PkgId, client: &Option<Client>, is_local: bool) -> anyhow::Result<Lookup> {
     match pkg_id {
         // lookup the latest version
         PkgId::Remote { name, semver } => {
@@ -90,7 +90,8 @@ pub fn lookup(pkg_id: &PkgId, client: &Option<Client>) -> anyhow::Result<Lookup>
         }
 
         // otherwise load it from the local path
-        PkgId::Local(path) => Crate::from_path(path).map(Lookup::Workspace),
+        PkgId::Local(path) if !is_local => Crate::from_path(path).map(Lookup::Workspace),
+        PkgId::Local(path) => Crate::from_local(path).map(Lookup::Workspace),
     }
 }
 

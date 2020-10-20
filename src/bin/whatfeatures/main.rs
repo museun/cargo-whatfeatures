@@ -43,7 +43,7 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
 
     let mut out = std::io::stdout();
 
-    let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client)? {
+    let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client, args.local_only)? {
         Lookup::Partial(vers) => {
             let Version { name, version, .. } = &vers;
 

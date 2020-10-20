@@ -348,6 +348,9 @@ pub struct Args {
 
     /// The theme to use
     pub theme: Theme,
+
+    /// Don't treat this crate as a member of a workspace
+    pub local_only: bool,
 }
 
 impl Args {
@@ -529,6 +532,7 @@ impl Args {
         let show_deps = args.contains(["-d", "--deps"]);
         let offline = args.contains(["-o", "--offline"]);
         let verbose = args.contains(["-v", "--verbose"]);
+        let local_only = args.contains(["-t", "--this-crate"]);
 
         let theme = Self::try_parse_theme(&mut args)?;
 
@@ -584,6 +588,7 @@ impl Args {
             name_only,
 
             pkgid: pkgid.unwrap(),
+            local_only,
 
             offline,
 
@@ -621,6 +626,7 @@ FLAGS:
     -d, --deps                  Display dependencies for the crate
     -n, --no-features           Disable listing the features for the crate
     -r, --restricted            When used on a local workspace, also included private packages
+    -t, --this-crate            When used on a crate in a local workspace, don't traverse to the root
     -l, --list                  List all versions for the crate
     -s, --short                 Display only the name and latest version
     -v, --verbose               Print all leaf nodes and optional deps
@@ -662,6 +668,11 @@ ARGS:
 
         -r, --restricted
             When used on a local workspace, also included private packages
+
+        -t, --this-crate
+            When used on a crate in a local workspace, don't traverse to the root
+            Normally, if you're in a workspace member, it will traverse to the root 
+            and list all sibling crates as well. This flag disabled that behavior
 
         -l, --list
             List all versions for the crate.

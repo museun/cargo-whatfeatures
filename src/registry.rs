@@ -149,6 +149,35 @@ impl Crate {
             .map_err(Into::into)
     }
 
+    /// Tries to get the features from a local crate -- without traversing workspace
+    pub fn from_local(path: impl Into<PathBuf>) -> anyhow::Result<Workspace> {
+        let path = path.into();
+        anyhow::ensure!(path.join("Cargo.toml").is_file(), "invalid manifest path");
+
+        let name = path
+            .iter()
+            .last()
+            .unwrap_or_else(|| path.as_ref())
+            .to_string_lossy();
+
+        cargo_metadata::MetadataCommand::new()
+            .current_dir(&path)
+            .no_deps()
+            .exec()
+            .map(|md| Workspace::parse(md, &name))
+            .map(|mut ws| {
+                ws.map.retain(|k, _| {
+                    k.repr
+                        .splitn(2, ' ')
+                        .next()
+                        .filter(|&s| s == name)
+                        .is_some()
+                });
+                ws
+            })
+            .map_err(Into::into)
+    }
+
     /// Tries to get the features from a local crate
     pub fn from_path(path: impl Into<PathBuf>) -> anyhow::Result<Workspace> {
         let path = path.into();
