@@ -43,7 +43,7 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
 
     let mut out = std::io::stdout();
 
-    let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client)? {
+    let workspace = match cargo_whatfeatures::lookup(&args.pkgid, &client, args.local_only)? {
         Lookup::Partial(vers) => {
             let Version { name, version, .. } = &vers;
 
@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
     let theme = args.theme;
 
     if let Err(err) = real_main(args) {
-        eprintln!("{}", theme.error.paint(format!("ERROR: {}", err)));
+        eprintln!("{}: {}", theme.error.paint("ERROR"), err);
         std::process::exit(1)
     }
 

@@ -9,7 +9,7 @@ license       = "MIT OR Apache-2.0"
 name          = "cargo-whatfeatures"
 readme        = "README.md"
 repository    = "https://github.com/museun/whatfeatures"
-version       = "0.9.5"
+version       = "0.9.6"
 
 [[bin]]
 name = "cargo-whatfeatures"
@@ -21,17 +21,17 @@ native-tls = ["attohttpc/tls"]
 rustls     = ["attohttpc/tls-rustls"]
 
 [dependencies]
-anyhow              = "1.0.32"
-attohttpc           = { version = "0.15.0", default-features = false, features = ["json", "compress"] }
-cargo_metadata      = "0.11.2"
+anyhow              = "1.0.33"
+attohttpc           = { version = "0.16.0", default-features = false, features = ["json", "compress"] }
+cargo_metadata      = "0.12.0"
 crate_version_parse = "0.2.0"
-directories-next    = "1.0.1"
-flate2              = "1.0.17"
+directories-next    = "1.0.2"
+flate2              = "1.0.18"
 home                = "0.5.3"
 pico-args           = "0.3.4"
-serde               = { version = "1.0.116", features = ["derive"] }
+serde               = { version = "1.0.117", features = ["derive"] }
 tar                 = "0.4.30"
-time                = "0.2.18"
+time                = "0.2.22"
 yansi               = "0.5.0"
 
 [profile.release.build-override]
