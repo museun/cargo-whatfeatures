@@ -1,31 +1,38 @@
 # cargo-whatfeatures
+
 [![Documentation][docs_badge]][docs]
 [![Crates][crates_badge]][crates]
 
 ## Table of Contents
+
 - [Installation](#install)
 - [Notes on color](#notes-on-color)
 - [Usage](#usage)
 - [License](#license)
 
 ## Install
+
 with cargo installed, simply do:
+
 > cargo install cargo-whatfeatures
 
 **Note** you can switch to using [rustls](https://docs.rs/rustls/latest/rustls/) by doing:
+
 > cargo install cargo-whatfeatures --no-default-features --features "rustls"
 
 By default it uses the [native-tls](https://docs.rs/native-tls/latest/native_tls/) backend
 
 ## Notes on color
+
 if the `NO_COLOR` env-var has a value, all color will be disabled.
 
 See https://no-color.org/
 
 ## Usage
+
 ```
-cargo-whatfeatures 0.9.2
-The `whatfeatures` command
+cargo-whatfeatures 0.9.6
+the `whatfeatures` command
 
     USAGE:
         cargo whatfeatures [FLAGS] [OPTIONS] <crate>
@@ -46,6 +53,11 @@ The `whatfeatures` command
 
         -r, --restricted
             When used on a local workspace, also included private packages
+
+        -t, --this-crate
+            When used on a crate in a local workspace, don't traverse to the root
+            Normally, if you're in a workspace member, it will traverse to the root
+            and list all sibling crates as well. This flag disabled that behavior
 
         -l, --list
             List all versions for the crate.
@@ -77,6 +89,9 @@ The `whatfeatures` command
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
+        --theme [basic, colorful]
+            use this provided theme
+
     OPTIONS:
         -c, --color [always, auto, never]
             Attempts to use colors when printing as text [default: auto]
@@ -107,22 +122,21 @@ The `whatfeatures` command
 
 ```
 
-This allows you to lookup a **specific** crate, at a ***specific*** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
+This allows you to lookup a **specific** crate, at a **_specific_** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.
 
 You can also use this on local crates and workspaces.
-
 
 Usage: [example.md](./docs/example.md)
 
 ## License
+
 `cargo-whatfeatures` is primarily distributed under the terms of both the MIT license and the Apache License (Version 2.0).
 
-See [LICENSE-APACHE][APACHE] and [LICENSE-MIT][MIT] for details.
+See [LICENSE-APACHE][apache] and [LICENSE-MIT][mit] for details.
 
 [docs_badge]: https://docs.rs/cargo-whatfeatures/badge.svg
 [docs]: https://docs.rs/cargo-whatfeatures
 [crates_badge]: https://img.shields.io/crates/v/cargo-whatfeatures.svg
 [crates]: https://crates.io/crates/cargo-whatfeatures
-
-[APACHE]: ./LICENSE-APACHE
-[MIT]: ./LICENSE-MIT
+[apache]: ./LICENSE-APACHE
+[mit]: ./LICENSE-MIT
