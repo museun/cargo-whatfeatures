@@ -8,7 +8,7 @@ keywords      = ["features", "dependencies", "crates", "cargo", "cargo-subcomman
 license       = "MIT OR Apache-2.0"
 name          = "cargo-whatfeatures"
 readme        = "README.md"
-repository    = "https://github.com/museun/whatfeatures"
+repository    = "https://github.com/museun/cargo-whatfeatures"
 version       = "0.9.6"
 
 [[bin]]
