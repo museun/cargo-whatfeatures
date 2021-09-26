@@ -19,7 +19,7 @@ pub fn extract_crate(
 
 /// Get the cache directory
 pub fn cache_dir() -> anyhow::Result<PathBuf> {
-    directories_next::ProjectDirs::from("com.github", "museun", "whatfeatures")
+    directories::ProjectDirs::from("com.github", "museun", "whatfeatures")
         .ok_or_else(|| anyhow::anyhow!("cannot open projects directory"))
         .map(|dir| dir.cache_dir().into())
 }
