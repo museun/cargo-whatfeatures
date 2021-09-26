@@ -153,7 +153,7 @@ pub struct Version {
     /// Whether this version was yanked
     pub yanked: bool,
     /// The primary license of the crate
-    pub license: String,
+    pub license: Option<String>,
     /// When the crate was created
     #[serde(deserialize_with = "time02_parse_timestamp")]
     pub created_at: time::OffsetDateTime,
