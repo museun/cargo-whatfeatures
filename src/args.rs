@@ -273,7 +273,7 @@ impl PkgId {
 
     /// Whether this is a local package
     pub fn is_local(&self) -> bool {
-        matches!(self, Self::Local{ .. })
+        matches!(self, Self::Local { .. })
     }
 }
 
@@ -549,7 +549,11 @@ impl Args {
         }
 
         // TODO redo all of this
-        let mut crate_names = args.free()?;
+        let mut crate_names = args
+            .finish()
+            .into_iter()
+            .map(|s| s.to_string_lossy().to_string())
+            .collect::<Vec<_>>();
         match crate_names.len() {
             0 if pkgid.is_some() => {}
             0 if manifest_path.is_some() => {
@@ -671,7 +675,7 @@ ARGS:
 
         -t, --this-crate
             When used on a crate in a local workspace, don't traverse to the root
-            Normally, if you're in a workspace member, it will traverse to the root 
+            Normally, if you're in a workspace member, it will traverse to the root
             and list all sibling crates as well. This flag disabled that behavior
 
         -l, --list
