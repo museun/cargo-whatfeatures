@@ -103,7 +103,6 @@ impl Client {
 
         resp.json()
             .with_context(move || format!("cannot parse json from {}", endpoint))
-            .map_err(Into::into)
     }
 
     fn fetch_bytes(&self, endpoint: &str) -> anyhow::Result<Vec<u8>> {

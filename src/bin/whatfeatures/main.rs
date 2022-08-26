@@ -79,7 +79,7 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
         }
 
         pkg @ Lookup::LocalCache(..) | pkg @ Lookup::Workspace(..) => {
-            let local = matches!(pkg, Lookup::LocalCache{..});
+            let local = matches!(pkg, Lookup::LocalCache { .. });
             let pkg = match pkg {
                 Lookup::LocalCache(pkg) | Lookup::Workspace(pkg) => pkg,
                 _ => unreachable!(),
@@ -115,18 +115,6 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn main() -> anyhow::Result<()> {
-    let args = Args::parse()?;
-    let theme = args.theme;
-
-    if let Err(err) = real_main(args) {
-        eprintln!("{}: {}", theme.error.paint("ERROR"), err);
-        std::process::exit(1)
-    }
-
-    Ok(())
-}
-
 fn cannot_lookup(pkgid: &PkgId) -> anyhow::Result<()> {
     let mut out = format!("cannot lookup crate '{}'.", &pkgid);
     if let PkgId::Remote {
@@ -141,4 +129,16 @@ fn cannot_lookup(pkgid: &PkgId) -> anyhow::Result<()> {
     }
 
     anyhow::bail!(out)
+}
+
+fn main() -> anyhow::Result<()> {
+    let args = Args::parse()?;
+    let theme = args.theme;
+
+    if let Err(err) = real_main(args) {
+        eprintln!("{}: {}", theme.error.paint("ERROR"), err);
+        std::process::exit(1)
+    }
+
+    Ok(())
 }

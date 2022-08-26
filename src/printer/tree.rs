@@ -75,28 +75,28 @@ impl<T: Item> Printer for T {
 }
 
 pub fn print(item: impl Item, writer: &mut (impl Write + ?Sized), theme: &Theme) -> io::Result<()> {
-    let appearance = Appearance {
+    Appearance {
         style: &Style::default(),
         theme,
-    };
-
-    return print(&item, writer, "", "", &appearance, 0);
-
-    // impl below
-    struct Appearance<'a, 'b> {
-        theme: &'a Theme,
-        style: &'b Style,
     }
+    .print(&item, writer, "", "", 0)
+}
 
+struct Appearance<'a, 'b> {
+    theme: &'a Theme,
+    style: &'b Style,
+}
+
+impl<'a, 'b> Appearance<'a, 'b> {
     fn print(
+        &self,
         item: &impl Item,
         writer: &mut (impl Write + ?Sized),
         left: impl Display,
         child: impl Display,
-        appearance: &Appearance,
         depth: usize,
     ) -> std::io::Result<()> {
-        let Appearance { style, theme } = appearance;
+        let Appearance { style, theme } = self;
 
         write!(writer, "{}", theme.tree.paint(left))?;
         item.write(writer)?;
@@ -107,22 +107,14 @@ pub fn print(item: impl Item, writer: &mut (impl Write + ?Sized), theme: &Theme)
             let right_prefix = format!("{}{}", child, style.pipe);
 
             for child in children {
-                print(
-                    child,
-                    writer,
-                    &left_prefix,
-                    &right_prefix,
-                    appearance,
-                    depth + 1,
-                )?;
+                self.print(child, writer, &left_prefix, &right_prefix, depth + 1)?;
             }
 
-            print(
+            self.print(
                 last,
                 writer,
                 format!("{}{}", child, style.edge),
                 format!("{}{}", child, style.last),
-                appearance,
                 depth + 1,
             )?;
         }

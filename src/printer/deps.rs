@@ -9,9 +9,7 @@ pub struct SortedDeps {
 }
 
 impl SortedDeps {
-    // we should have a workspace of map<crate_name, hashmap<kind, vec<dep>>>
     pub fn from_kind_map(mut map: HashMap<Kind, Vec<Dependency>>) -> Self {
-        // this is accidently flattening the tree
         fn categorize(kind: Kind, kind_map: &mut HashMap<Kind, Vec<Dependency>>) -> GroupedDeps {
             let (mut other, mut map) = (Vec::new(), BTreeMap::new());
             if let Some(deps) = kind_map.remove(&kind) {

@@ -178,7 +178,7 @@ fn make_deps_node(features: &Features, theme: &Theme, verbose: bool) -> Node {
 }
 
 fn make_features_node(features: &Features, theme: &Theme, verbose: bool) -> Node {
-    let mut sorted: BTreeMap<&String, BTreeSet<&String>> = features
+    let mut sorted: BTreeMap<_, BTreeSet<_>> = features
         .features
         .iter()
         .map(|(k, v)| (&*k, v.iter().collect()))
@@ -188,7 +188,7 @@ fn make_features_node(features: &Features, theme: &Theme, verbose: bool) -> Node
         return Node::empty(theme.no_features.paint(labels::NO_FEATURES));
     }
 
-    let mut default: Option<BTreeSet<&String>> = None;
+    let mut default = None;
 
     let default_node = match sorted.remove(&"default".to_string()) {
         Some(def) if !def.is_empty() => {
