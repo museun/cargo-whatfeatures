@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use cargo_whatfeatures::*;
 
 fn real_main(mut args: Args) -> anyhow::Result<()> {
@@ -32,6 +34,21 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
             args.show_yanked.replace(YankStatus::Include);
         }
 
+        if args.list && args.json {
+            let unique = versions.iter().map(|c| &c.name).collect::<HashSet<_>>();
+            anyhow::ensure!(!unique.is_empty(), "no crates were found");
+            anyhow::ensure!(
+                unique.len() == 1,
+                "program is in an invalid state. expected 1 crate, found {}",
+                unique.len()
+            );
+
+            let name = unique.into_iter().next().unwrap().clone();
+            let json = cargo_whatfeatures::json::create_crates_from_versions(&name, versions);
+            println!("{json}");
+            std::process::exit(0)
+        }
+
         return VersionPrinter::new(&mut std::io::stdout(), options)
             .write_versions(
                 &versions,
@@ -48,6 +65,15 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
             let Version { name, version, .. } = &vers;
 
             if args.name_only {
+                if args.json {
+                    let json = cargo_whatfeatures::json::create_crates_from_versions(
+                        name,
+                        Some(vers.clone()),
+                    );
+                    println!("{json}");
+                    std::process::exit(0)
+                }
+
                 return VersionPrinter::new(&mut std::io::stdout(), options)
                     .write_latest_version(&vers, args.verbose)
                     .map_err(Into::into);
@@ -102,14 +128,25 @@ fn real_main(mut args: Args) -> anyhow::Result<()> {
                     .collect::<Vec<_>>();
                 packages.sort_by(|(l, ..), (r, ..)| l.cmp(r));
 
-                let mut writer = VersionPrinter::new(&mut out, options);
+                if args.json {
+                    let json =
+                        cargo_whatfeatures::json::create_crates_from_workspace(&pkg.hint, packages);
+                    println!("{json}");
+                    std::process::exit(0)
+                }
 
-                writer.write_many_versions(packages)?;
+                VersionPrinter::new(&mut out, options).write_many_versions(packages)?;
                 return Ok(());
             }
             pkg
         }
     };
+
+    if args.json {
+        let json = cargo_whatfeatures::json::workspace(workspace);
+        println!("{json}");
+        std::process::exit(0)
+    }
 
     WorkspacePrinter::new(&mut std::io::stdout(), workspace, options).print()?;
     Ok(())

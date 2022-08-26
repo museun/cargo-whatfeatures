@@ -13,6 +13,10 @@ mod util;
 #[doc(inline)]
 pub use client::{Client, Version};
 
+// TODO remove this
+#[doc(hidden)]
+pub use client::json;
+
 #[doc(inline)]
 pub use registry::{Crate, Registry, YankState};
 

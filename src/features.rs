@@ -1,9 +1,9 @@
 use cargo_metadata::{DependencyKind, Metadata, Package, PackageId};
 use std::collections::HashMap;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, serde::Serialize)]
 pub struct Workspace {
-    pub hint: String,
+    pub hint: String, // TODO: what an awesome name
     pub map: HashMap<PackageId, Features>,
 }
 
@@ -29,7 +29,7 @@ impl Workspace {
 }
 
 /// A feature mapping
-#[derive(Debug, Default)]
+#[derive(Debug, Default, serde::Serialize)]
 pub struct Features {
     /// The name of the crate
     pub name: String,
@@ -92,7 +92,7 @@ impl Features {
 }
 
 /// A crate dependency
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Dependency {
     /// The name of the dependency
     pub name: String,
@@ -107,7 +107,8 @@ pub struct Dependency {
 }
 
 /// The kind of dependency
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Hash, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Kind {
     /// A normal dependency
     Normal,

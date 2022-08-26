@@ -351,6 +351,9 @@ pub struct Args {
 
     /// Don't treat this crate as a member of a workspace
     pub local_only: bool,
+
+    /// Output json instead of human readable
+    pub json: bool,
 }
 
 impl Args {
@@ -533,6 +536,7 @@ impl Args {
         let offline = args.contains(["-o", "--offline"]);
         let verbose = args.contains(["-v", "--verbose"]);
         let local_only = args.contains(["-t", "--this-crate"]);
+        let json = args.contains(["-j", "--json"]);
 
         let theme = Self::try_parse_theme(&mut args)?;
 
@@ -597,6 +601,8 @@ impl Args {
             offline,
 
             theme,
+
+            json,
         })
     }
 }
