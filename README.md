@@ -31,7 +31,7 @@ See https://no-color.org/
 ## Usage
 
 ```
-cargo-whatfeatures 0.9.6
+cargo-whatfeatures 0.9.8
 the `whatfeatures` command
 
     USAGE:
