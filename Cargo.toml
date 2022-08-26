@@ -21,16 +21,16 @@ native-tls = ["attohttpc/tls"]
 rustls     = ["attohttpc/tls-rustls"]
 
 [dependencies]
-anyhow              = "1.0.44"
-attohttpc           = { version = "0.17.0", default-features = false, features = ["json", "compress"] }
-cargo_metadata      = "0.14.0"
+anyhow              = "1.0.62"
+attohttpc           = { version = "0.22.0", default-features = false, features = ["json", "compress"] }
+cargo_metadata      = "0.15.0"
 crate_version_parse = "0.2.0"
 directories         = "4.0.1"
-flate2              = "1.0.22"
+flate2              = "1.0.24"
 home                = "0.5.3"
-serde               = { version = "1.0.130", features = ["derive"] }
-tar                 = "0.4.37"
-yansi               = "0.5.0"
+serde               = { version = "1.0.144", features = ["derive"] }
+tar                 = "0.4.38"
+yansi               = "0.5.1"
 time = { version = "0.3.14", features = ["macros", "formatting", "parsing"] }
 # TODO maybe just use clap here, the arg parsing code in this crate is something like 40% of the codebase..
-pico-args = "0.4.2"
+pico-args = "0.5.0"
