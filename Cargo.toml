@@ -31,8 +31,6 @@ home                = "0.5.3"
 serde               = { version = "1.0.130", features = ["derive"] }
 tar                 = "0.4.37"
 yansi               = "0.5.0"
-
-# TODO read the documentation for time 0.3, or switch (back) to chrono
-time = "=0.2.27"
+time = { version = "0.3.14", features = ["macros", "formatting", "parsing"] }
 # TODO maybe just use clap here, the arg parsing code in this crate is something like 40% of the codebase..
 pico-args = "0.4.2"

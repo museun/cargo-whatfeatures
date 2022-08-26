@@ -1,5 +1,6 @@
 use crate::registry::Crate;
 use anyhow::Context as _;
+use time::format_description::FormatItem;
 
 /// An HTTP client for interacting with crates.io
 pub struct Client {
@@ -154,7 +155,7 @@ pub struct Version {
     /// The primary license of the crate
     pub license: Option<String>,
     /// When the crate was created
-    #[serde(deserialize_with = "time02_parse_timestamp")]
+    #[serde(deserialize_with = "time03_parse_timestamp")]
     pub created_at: time::OffsetDateTime,
 
     dl_path: String,
@@ -162,7 +163,8 @@ pub struct Version {
 
 impl Version {
     pub fn format_verbose_time(&self) -> String {
-        self.created_at.format("%F %0H:%M:%S %z")
+        const FMT: &[FormatItem<'static>] = time::macros::format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]");
+        self.created_at.format(&FMT).expect("valid time")
     }
 
     pub fn format_approx_time_span(&self) -> String {
@@ -190,32 +192,19 @@ impl Version {
     }
 }
 
-struct RelativeTimeVisitor;
-impl<'de> serde::de::Visitor<'de> for RelativeTimeVisitor {
-    type Value = time::OffsetDateTime;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("a string")
-    }
-
-    fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Self::Value, E> {
-        let mut iter = v.splitn(2, '.');
-        let head = iter
-            .next()
-            .ok_or_else(|| E::custom("timestamp is malformed"))?;
-
-        let ts = format!("{}+0000", head);
-        time::OffsetDateTime::parse(&ts, "%FT%T%z").map_err(E::custom)
-    }
-
-    fn visit_string<E: serde::de::Error>(self, v: String) -> Result<Self::Value, E> {
-        self.visit_str(v.as_str())
-    }
-}
-
-fn time02_parse_timestamp<'de, D>(deserializer: D) -> Result<time::OffsetDateTime, D::Error>
+pub fn time03_parse_timestamp<'de, D>(deser: D) -> Result<time::OffsetDateTime, D::Error>
 where
     D: serde::Deserializer<'de>,
 {
-    deserializer.deserialize_string(RelativeTimeVisitor)
+    use serde::de::Error as _;
+    use serde::Deserialize as _;
+
+    const FORMAT: &[FormatItem<'static>] = time::macros::format_description!(
+        "[year]-[month]-[day]T\
+        [hour]:[minute]:[second].[subsecond digits:6]\
+        [offset_hour sign:mandatory]:[offset_minute]"
+    );
+
+    let s = <std::borrow::Cow<'_, str>>::deserialize(deser)?;
+    time::OffsetDateTime::parse(&s, &FORMAT).map_err(D::Error::custom)
 }
