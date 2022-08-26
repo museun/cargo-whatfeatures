@@ -9,7 +9,7 @@ license       = "MIT OR Apache-2.0"
 name          = "cargo-whatfeatures"
 readme        = "README.md"
 repository    = "https://github.com/museun/cargo-whatfeatures"
-version       = "0.9.8"
+version       = "0.9.9"
 
 [[bin]]
 name = "cargo-whatfeatures"
@@ -33,4 +33,4 @@ tar                 = "0.4.38"
 yansi               = "0.5.1"
 time                = { version = "0.3.14", features = ["macros", "formatting", "parsing", "serde"] }
 pico-args           = "0.5.0"
-serde_json = "1.0.85"
+serde_json          = "1.0.85"
