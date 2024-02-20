@@ -431,6 +431,7 @@ impl Args {
         Ok(match theme_name.map(|s| s.to_lowercase()).as_deref() {
             Some("colorful") => Theme::colorful(),
             Some("basic") => Theme::basic(),
+            Some("palette") => Theme::palette(),
             None => Theme::default(),
             _ => anyhow::bail!("invalid theme name"),
         })
@@ -718,7 +719,7 @@ ARGS:
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful]
+        --theme [basic, colorful, palette]
             use this provided theme
 
     OPTIONS:

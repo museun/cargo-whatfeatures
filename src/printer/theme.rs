@@ -64,6 +64,10 @@ impl Theme {
     pub const fn colorful() -> Self {
         DEFAULT_THEME
     }
+
+    pub const fn palette() -> Self {
+        PALETTE_THEME
+    }
 }
 
 impl Default for Theme {
@@ -166,4 +170,38 @@ const BASIC_THEME: Theme = Theme {
     dep_feature: Color::Unset,
 
     tree: Color::RGB(48, 48, 48),
+};
+
+const PALETTE_THEME: Theme = Theme {
+    warning: Color::Red,
+    error: Color::Yellow,
+    workspace: Color::Unset,
+    name: Color::Blue,
+    version: Color::Green,
+    yanked: Color::Red,
+    created_at: Color::Unset,
+    license: Color::Unset,
+    is_not_published: Color::Yellow,
+    no_default_features: Color::Magenta,
+    no_features: Color::Default,
+    no_optional_deps: Color::Default,
+    no_required_deps: Color::Default,
+    no_dev_deps: Color::Default,
+    no_build_deps: Color::Default,
+    has_enabled_features: Color::Cyan,
+    features: Color::Default,
+    feature_name: Color::Default,
+    feature_implies: Color::Cyan,
+    probably_internal: Color::Red,
+    default: Color::Yellow,
+    required_deps: Color::Blue,
+    optional_deps: Color::Magenta,
+    normal_deps: Color::Unset,
+    dev_deps: Color::Unset,
+    build_deps: Color::Unset,
+    renamed: Color::Red,
+    renamed_target: Color::Yellow,
+    target: Color::Yellow,
+    dep_feature: Color::Green,
+    tree: Color::Default,
 };

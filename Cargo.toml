@@ -1,36 +1,36 @@
 [package]
-authors       = ["museun <museun@outlook.com>"]
-categories    = ["development-tools::cargo-plugins", "development-tools"]
-description   = "display features, versions and dependencies of crates"
+authors = [ "museun <museun@outlook.com>" ]
+categories = [ "development-tools::cargo-plugins", "development-tools" ]
+description = "display features, versions and dependencies of crates"
 documentation = "https://docs.rs/cargo-whatfeatures/latest/cargo-whatfeatures/"
-edition       = "2021"
-keywords      = ["features", "dependencies", "crates", "cargo", "cargo-subcommand"]
-license       = "MIT OR Apache-2.0"
-name          = "cargo-whatfeatures"
-readme        = "README.md"
-repository    = "https://github.com/museun/cargo-whatfeatures"
-version       = "0.9.9"
+edition = "2021"
+keywords = [ "features", "dependencies", "crates", "cargo", "cargo-subcommand" ]
+license = "MIT OR Apache-2.0"
+name = "cargo-whatfeatures"
+readme = "README.md"
+repository = "https://github.com/museun/cargo-whatfeatures"
+version = "0.9.9"
 
 [[bin]]
 name = "cargo-whatfeatures"
 path = "src/bin/whatfeatures/main.rs"
 
 [features]
-default    = ["native-tls"]
-native-tls = ["attohttpc/tls"]
-rustls     = ["attohttpc/tls-rustls"]
+default = [ "native-tls" ]
+native-tls = [ "attohttpc/tls" ]
+rustls = [ "attohttpc/tls-rustls" ]
 
 [dependencies]
-anyhow              = "1.0.62"
-attohttpc           = { version = "0.22.0", default-features = false, features = ["json", "compress"] }
-cargo_metadata      = "0.15.0"
+anyhow = "1.0.80"
+attohttpc = { version = "0.27.0", default-features = false, features = [ "json", "compress" ] }
+cargo_metadata = "0.18.1"
 crate_version_parse = "0.2.0"
-directories         = "4.0.1"
-flate2              = "1.0.24"
-home                = "0.5.3"
-serde               = { version = "1.0.144", features = ["derive"] }
-tar                 = "0.4.38"
-yansi               = "0.5.1"
-time                = { version = "0.3.14", features = ["macros", "formatting", "parsing", "serde"] }
-pico-args           = "0.5.0"
-serde_json          = "1.0.85"
+directories = "5.0.1"
+flate2 = "1.0.28"
+home = "0.5.9"
+serde = { version = "1.0.197", features = [ "derive" ] }
+tar = "0.4.40"
+yansi = "0.5.1"
+time = { version = "0.3.34", features = [ "macros", "formatting", "parsing" ] }
+pico-args = "0.5.0"
+serde_json = "1.0.114"
