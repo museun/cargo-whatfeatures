@@ -31,7 +31,7 @@ See https://no-color.org/
 ## Usage
 
 ```
-cargo-whatfeatures 0.9.8
+cargo-whatfeatures 0.9.9
 the `whatfeatures` command
 
     USAGE:
@@ -74,6 +74,9 @@ the `whatfeatures` command
             Don't connect to the internet, limits the availities of this.
             If the crate is in either cargo's local registry, or whatfeatures' cache
             then this will work normally, otherwise it'll give you a nice error.
+
+        -j, --json
+            This outputs JSON rather than the human readable format
 
         --print-cache-dir
             Prints out the path to the cache directory

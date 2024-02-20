@@ -80,6 +80,7 @@ dependencies = [
  "home",
  "pico-args",
  "serde",
+ "serde_json",
  "tar",
  "time",
  "yansi",

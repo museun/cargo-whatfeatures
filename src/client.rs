@@ -142,12 +142,12 @@ impl Client {
 }
 
 /// A crate version
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct Version {
     #[serde(rename = "crate")]
     /// The name of the crate
     pub name: String,
-    #[serde(rename = "num")]
+    #[serde(rename(deserialize = "num"))]
     /// The semantic version of the crate
     pub version: String,
     /// Whether this version was yanked
@@ -155,16 +155,22 @@ pub struct Version {
     /// The primary license of the crate
     pub license: Option<String>,
     /// When the crate was created
-    #[serde(deserialize_with = "time03_parse_timestamp")]
+    #[serde(
+        deserialize_with = "time03_parse_timestamp",
+        serialize_with = "time03_format_timestamp"
+    )]
     pub created_at: time::OffsetDateTime,
 
     dl_path: String,
 }
 
 impl Version {
+    const FMT: &'static [FormatItem<'static>] = time::macros::format_description!(
+        "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]"
+    );
+
     pub fn format_verbose_time(&self) -> String {
-        const FMT: &[FormatItem<'static>] = time::macros::format_description!("[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour sign:mandatory][offset_minute]");
-        self.created_at.format(&FMT).expect("valid time")
+        self.created_at.format(&Self::FMT).expect("valid time")
     }
 
     pub fn format_approx_time_span(&self) -> String {
@@ -207,4 +213,86 @@ where
 
     let s = <std::borrow::Cow<'_, str>>::deserialize(deser)?;
     time::OffsetDateTime::parse(&s, &FORMAT).map_err(D::Error::custom)
+}
+
+pub fn time03_format_timestamp<S>(
+    time: &time::OffsetDateTime,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: ::serde::Serializer,
+{
+    use serde::ser::Error as _;
+    use serde::ser::Serialize as _;
+    time.format(&Version::FMT)
+        .map_err(S::Error::custom)?
+        .serialize(serializer)
+}
+
+pub mod json {
+    use crate::{features::Workspace, Version};
+
+    fn format_timestamp(time: &time::OffsetDateTime) -> String {
+        time.format(&Version::FMT).expect("valid time")
+    }
+
+    pub fn create_crates_from_versions(
+        name: &str,
+        versions: impl IntoIterator<Item = Version>,
+    ) -> serde_json::Value {
+        let array = versions.into_iter().map(|version| {
+            serde_json::json!({
+                "version": version.version,
+                "yanked": version.yanked,
+                "license": version.license,
+                "created_at": format_timestamp(&version.created_at),
+                "dl_path": version.dl_path,
+            })
+        });
+
+        serde_json::json!({
+            name: array.collect::<Vec<_>>()
+        })
+    }
+
+    pub fn create_crates_from_workspace<'a>(
+        workspace: &str,
+        crates: impl IntoIterator<Item = (&'a String, &'a String, bool)>,
+    ) -> serde_json::Value {
+        let array = crates.into_iter().map(|(name, version, published)| {
+            serde_json::json!({
+                "crate": name,
+                "version": version,
+                "published": published,
+            })
+        });
+
+        serde_json::json!({
+            workspace: array.collect::<Vec<_>>()
+        })
+    }
+
+    pub fn workspace(workspace: Workspace) -> serde_json::Value {
+        let map = workspace
+            .map
+            .into_iter()
+            .map(|(_, features)| {
+                serde_json::json!({
+                    "crate": features.name,
+                    "version": features.version,
+                    "published": features.published,
+                    "features": features.features,
+                    "dependencies": {
+                        "optional": features.optional_deps,
+                        "required": features.required_deps,
+                    }
+                })
+            })
+            .collect::<Vec<_>>();
+
+        serde_json::json!({
+            "workspace": workspace.hint,
+            "members": map
+        })
+    }
 }

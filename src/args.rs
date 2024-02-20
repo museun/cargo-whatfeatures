@@ -351,6 +351,9 @@ pub struct Args {
 
     /// Don't treat this crate as a member of a workspace
     pub local_only: bool,
+
+    /// Output json instead of human readable
+    pub json: bool,
 }
 
 impl Args {
@@ -534,6 +537,7 @@ impl Args {
         let offline = args.contains(["-o", "--offline"]);
         let verbose = args.contains(["-v", "--verbose"]);
         let local_only = args.contains(["-t", "--this-crate"]);
+        let json = args.contains(["-j", "--json"]);
 
         let theme = Self::try_parse_theme(&mut args)?;
 
@@ -598,6 +602,8 @@ impl Args {
             offline,
 
             theme,
+
+            json,
         })
     }
 }
@@ -636,6 +642,7 @@ FLAGS:
     -s, --short                 Display only the name and latest version
     -v, --verbose               Print all leaf nodes and optional deps
     -o, --offline               Don't connect to the internet, limits the availities of this.
+    -j, --json                  Prints json rather than a human-readable format
     --print-cache-dir           Prints out the path to the cache directory
     --purge                     Purges the local cache
     --theme                     Use a different theme
@@ -694,6 +701,9 @@ ARGS:
             Don't connect to the internet, limits the availities of this.
             If the crate is in either cargo's local registry, or whatfeatures' cache
             then this will work normally, otherwise it'll give you a nice error.
+
+        -j, --json
+            This outputs JSON rather than the human readable format
 
         --print-cache-dir
             Prints out the path to the cache directory
