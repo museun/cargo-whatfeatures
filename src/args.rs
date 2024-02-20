@@ -428,6 +428,7 @@ impl Args {
         Ok(match theme_name.map(|s| s.to_lowercase()).as_deref() {
             Some("colorful") => Theme::colorful(),
             Some("basic") => Theme::basic(),
+            Some("palette") => Theme::palette(),
             None => Theme::default(),
             _ => anyhow::bail!("invalid theme name"),
         })
