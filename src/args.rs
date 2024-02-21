@@ -428,12 +428,20 @@ impl Args {
 
     fn try_parse_theme(args: &mut Arguments) -> anyhow::Result<Theme> {
         let theme_name: Option<String> = args.opt_value_from_str("--theme")?;
-        Ok(match theme_name.map(|s| s.to_lowercase()).as_deref() {
-            Some("colorful") => Theme::colorful(),
-            Some("basic") => Theme::basic(),
-            Some("palette") => Theme::palette(),
-            None => Theme::default(),
-            _ => anyhow::bail!("invalid theme name"),
+        match theme_name.as_deref().map(Self::try_parse_theme_name) {
+            Some(Ok(theme)) => Ok(theme),
+            Some(err) => err,
+            None => Ok(Theme::default()),
+        }
+    }
+
+    fn try_parse_theme_name(theme_name: &str) -> anyhow::Result<Theme> {
+        Ok(match &*theme_name.to_lowercase() {
+            "colorful" => Theme::colorful(),
+            "basic" => Theme::basic(),
+            "palette" => Theme::palette(),
+            "none" => Theme::none(),
+            _ => anyhow::bail!("invalid theme name, available: [colorful, basic, palette, none]"),
         })
     }
 
@@ -539,7 +547,15 @@ impl Args {
         let local_only = args.contains(["-t", "--this-crate"]);
         let json = args.contains(["-j", "--json"]);
 
-        let theme = Self::try_parse_theme(&mut args)?;
+        let mut theme = Self::try_parse_theme(&mut args)?;
+
+        if let Some(override_theme) = std::env::var("WHATFEATURES_THEME")
+            .ok()
+            .as_deref()
+            .map(Args::try_parse_theme_name)
+        {
+            theme = override_theme?
+        }
 
         let manifest_path: Option<PathBuf> = args.opt_value_from_str("--manifest-path")?;
         let mut pkgid: Option<PkgId> = args.opt_value_from_str(["-p", "--pkgid"])?;
@@ -657,6 +673,9 @@ ARGS:
     <crate>                     The name of a remote crate to retrieve information for.
                                 Or local path to a directory containing Cargo.toml, or Cargo.toml itself.
                                 This is exclusive with -p, --pkgid and with --manifest-path.
+
+CONFIG:
+    WHATFEATURES_THEME          [colorful, basic, palette, none]
 "#;
 
     static LONG_HELP: &str = r#"the `whatfeatures` command
@@ -719,7 +738,7 @@ ARGS:
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful, palette]
+        --theme [basic, colorful]
             use this provided theme
 
     OPTIONS:
@@ -749,6 +768,10 @@ ARGS:
                  as the crate to operate one
 
                  This is exclusive with -p, --pkgid and with --manifest-path.
+
+    CONFIG:
+        WHATFEATURES_THEME  [colorful, basic, palette, none]
+                            This allows you to override the --theme flag with an environmental variable
 "#;
 
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
