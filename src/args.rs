@@ -432,6 +432,7 @@ impl Args {
             Some("colorful") => Theme::colorful(),
             Some("basic") => Theme::basic(),
             Some("palette") => Theme::palette(),
+            Some("none") => Theme::none(),
             None => Theme::default(),
             _ => anyhow::bail!("invalid theme name"),
         })
@@ -719,7 +720,7 @@ ARGS:
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful, palette]
+        --theme [basic, colorful, palette, none]
             use this provided theme
 
     OPTIONS:

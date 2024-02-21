@@ -65,16 +65,70 @@ impl Theme {
         DEFAULT_THEME
     }
 
+    /// Get a palette-based theme
     pub const fn palette() -> Self {
         PALETTE_THEME
+    }
+
+    /// Get a colorless theme
+    pub const fn none() -> Self {
+        NO_THEME
     }
 }
 
 impl Default for Theme {
     fn default() -> Self {
-        DEFAULT_THEME
+        PALETTE_THEME
     }
 }
+
+const NO_THEME: Theme = Theme {
+    warning: Color::Unset,
+    error: Color::Unset,
+
+    workspace: Color::Unset,
+
+    name: Color::Unset,
+    version: Color::Unset,
+    yanked: Color::Unset,
+
+    created_at: Color::Unset,
+    license: Color::Unset,
+
+    is_not_published: Color::Unset,
+
+    no_default_features: Color::Unset,
+    no_features: Color::Unset,
+    no_optional_deps: Color::Unset,
+    no_required_deps: Color::Unset,
+    no_dev_deps: Color::Unset,
+    no_build_deps: Color::Unset,
+
+    has_enabled_features: Color::Unset,
+    features: Color::Unset,
+    feature_name: Color::Unset,
+    feature_implies: Color::Unset,
+
+    probably_internal: Color::Unset,
+
+    default: Color::Unset,
+
+    required_deps: Color::Unset,
+    optional_deps: Color::Unset,
+
+    normal_deps: Color::Unset,
+
+    dev_deps: Color::Unset,
+    build_deps: Color::Unset,
+
+    renamed: Color::Unset,
+    renamed_target: Color::Unset,
+
+    target: Color::Unset,
+    dep_feature: Color::Unset,
+
+    tree: Color::Unset,
+};
 
 const DEFAULT_THEME: Theme = Theme {
     warning: Color::RGB(255, 255, 0),
@@ -131,77 +185,45 @@ const BASIC_THEME: Theme = Theme {
     workspace: Color::RGB(255, 192, 192),
 
     name: Color::RGB(255, 192, 128),
-    version: Color::Unset,
+
     yanked: Color::RGB(255, 0, 0),
 
-    created_at: Color::Unset,
-    license: Color::Unset,
-
-    is_not_published: Color::Unset,
-
-    no_default_features: Color::Unset,
-    no_features: Color::Unset,
-    no_optional_deps: Color::Unset,
-    no_required_deps: Color::Unset,
-    no_dev_deps: Color::Unset,
-    no_build_deps: Color::Unset,
-
-    has_enabled_features: Color::Unset,
-    features: Color::Unset,
-    feature_name: Color::Unset,
     feature_implies: Color::RGB(192, 192, 255),
-
-    probably_internal: Color::Unset,
 
     default: Color::RGB(0, 255, 0),
 
-    required_deps: Color::Unset,
-    optional_deps: Color::Unset,
-
-    normal_deps: Color::Unset,
-
-    dev_deps: Color::Unset,
-    build_deps: Color::Unset,
-
-    renamed: Color::Unset,
-    renamed_target: Color::Unset,
-
-    target: Color::Unset,
-    dep_feature: Color::Unset,
-
     tree: Color::RGB(48, 48, 48),
+
+    ..NO_THEME
 };
 
 const PALETTE_THEME: Theme = Theme {
     warning: Color::Red,
     error: Color::Yellow,
-    workspace: Color::Unset,
+
     name: Color::Blue,
     version: Color::Green,
     yanked: Color::Red,
-    created_at: Color::Unset,
-    license: Color::Unset,
+
     is_not_published: Color::Yellow,
+
     no_default_features: Color::Magenta,
-    no_features: Color::Default,
-    no_optional_deps: Color::Default,
-    no_required_deps: Color::Default,
-    no_dev_deps: Color::Default,
-    no_build_deps: Color::Default,
     has_enabled_features: Color::Cyan,
-    features: Color::Default,
-    feature_name: Color::Default,
+
     feature_implies: Color::Cyan,
+
     probably_internal: Color::Red,
+
     default: Color::Yellow,
+
     required_deps: Color::Blue,
     optional_deps: Color::Magenta,
-    normal_deps: Color::Unset,
-    dev_deps: Color::Unset,
-    build_deps: Color::Unset,
+
     renamed: Color::Red,
     renamed_target: Color::Yellow,
+
     target: Color::Yellow,
     dep_feature: Color::Green,
-    tree: Color::Default,
+
+    ..NO_THEME
 };
