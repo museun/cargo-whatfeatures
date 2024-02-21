@@ -28,6 +28,8 @@ if the `NO_COLOR` env-var has a value, all color will be disabled.
 
 See https://no-color.org/
 
+if the `WHATFEATURES_THHEME` env-var has a one of the values: `[colorful, basic, palette, none]` the theme will be overriden. This will still honor `NO_COLOR`
+
 ## Usage
 
 ```
@@ -122,7 +124,9 @@ the `whatfeatures` command
                  as the crate to operate one
 
                  This is exclusive with -p, --pkgid and with --manifest-path.
-
+    CONFIG:
+        WHATFEATURES_THEME  [colorful, basic, palette, none]
+                            This allows you to override the --theme flag with an environmental variable
 ```
 
 This allows you to lookup a **specific** crate, at a **_specific_** version and get its **default** and **optional** features. It also allows listing the deps for the specified crate.

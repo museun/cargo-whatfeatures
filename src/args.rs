@@ -673,6 +673,9 @@ ARGS:
     <crate>                     The name of a remote crate to retrieve information for.
                                 Or local path to a directory containing Cargo.toml, or Cargo.toml itself.
                                 This is exclusive with -p, --pkgid and with --manifest-path.
+
+CONFIG:
+    WHATFEATURES_THEME          [colorful, basic, palette, none]
 "#;
 
     static LONG_HELP: &str = r#"the `whatfeatures` command
@@ -765,6 +768,10 @@ ARGS:
                  as the crate to operate one
 
                  This is exclusive with -p, --pkgid and with --manifest-path.
+
+    CONFIG:
+        WHATFEATURES_THEME  [colorful, basic, palette, none]
+                            This allows you to override the --theme flag with an environmental variable
 "#;
 
     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
