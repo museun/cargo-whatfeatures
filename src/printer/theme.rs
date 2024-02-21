@@ -65,7 +65,6 @@ impl Theme {
         DEFAULT_THEME
     }
 
-    /// Get a palette-based theme
     pub const fn palette() -> Self {
         PALETTE_THEME
     }
