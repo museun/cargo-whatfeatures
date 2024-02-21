@@ -428,13 +428,20 @@ impl Args {
 
     fn try_parse_theme(args: &mut Arguments) -> anyhow::Result<Theme> {
         let theme_name: Option<String> = args.opt_value_from_str("--theme")?;
-        Ok(match theme_name.map(|s| s.to_lowercase()).as_deref() {
-            Some("colorful") => Theme::colorful(),
-            Some("basic") => Theme::basic(),
-            Some("palette") => Theme::palette(),
-            Some("none") => Theme::none(),
-            None => Theme::default(),
-            _ => anyhow::bail!("invalid theme name"),
+        match theme_name.as_deref().map(Self::try_parse_theme_name) {
+            Some(Ok(theme)) => Ok(theme),
+            Some(err) => err,
+            None => Ok(Theme::default()),
+        }
+    }
+
+    fn try_parse_theme_name(theme_name: &str) -> anyhow::Result<Theme> {
+        Ok(match &*theme_name.to_lowercase() {
+            "colorful" => Theme::colorful(),
+            "basic" => Theme::basic(),
+            "palette" => Theme::palette(),
+            "none" => Theme::none(),
+            _ => anyhow::bail!("invalid theme name, available: [colorful, basic, palette, none]"),
         })
     }
 
@@ -540,7 +547,15 @@ impl Args {
         let local_only = args.contains(["-t", "--this-crate"]);
         let json = args.contains(["-j", "--json"]);
 
-        let theme = Self::try_parse_theme(&mut args)?;
+        let mut theme = Self::try_parse_theme(&mut args)?;
+
+        if let Some(override_theme) = std::env::var("WHATFEATURES_THEME")
+            .ok()
+            .as_deref()
+            .map(Args::try_parse_theme_name)
+        {
+            theme = override_theme?
+        }
 
         let manifest_path: Option<PathBuf> = args.opt_value_from_str("--manifest-path")?;
         let mut pkgid: Option<PkgId> = args.opt_value_from_str(["-p", "--pkgid"])?;
