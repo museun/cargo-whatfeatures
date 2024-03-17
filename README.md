@@ -30,10 +30,12 @@ See https://no-color.org/
 
 if the `WHATFEATURES_THHEME` env-var has a one of the values: `[colorful, basic, palette, none]` the theme will be overriden. This will still honor `NO_COLOR`
 
+The default `theme` as of 0.9.10 is `palette` if you want to use the old one, use the `colorful` theme.
+
 ## Usage
 
 ```
-cargo-whatfeatures 0.9.9
+cargo-whatfeatures 0.9.10
 the `whatfeatures` command
 
     USAGE:
