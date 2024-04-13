@@ -88,7 +88,7 @@ pub fn lookup(pkg_id: &PkgId, client: &Option<Client>, is_local: bool) -> anyhow
                 Some(semver) => client.get_version(name, semver),
                 None => client.get_latest(name),
             }
-            .map_err(|_| cannot_find(pkg_id))?;
+            .map_err(|_err| cannot_find(pkg_id))?;
 
             Ok(Lookup::Partial(pkg))
         }
