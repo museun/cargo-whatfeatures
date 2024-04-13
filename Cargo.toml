@@ -31,6 +31,6 @@ home = "0.5.9"
 serde = { version = "1.0.197", features = [ "derive" ] }
 tar = "0.4.40"
 yansi = "0.5.1"
-time = { version = "0.3.34", features = [ "macros", "formatting", "parsing" ] }
+time = { version = "0.3.34", features = [ "macros", "formatting", "parsing", "serde" ] }
 pico-args = "0.5.0"
 serde_json = "1.0.114"

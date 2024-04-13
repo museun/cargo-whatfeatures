@@ -155,10 +155,7 @@ pub struct Version {
     /// The primary license of the crate
     pub license: Option<String>,
     /// When the crate was created
-    #[serde(
-        deserialize_with = "time03_parse_timestamp",
-        serialize_with = "time03_format_timestamp"
-    )]
+    #[serde(with = "time::serde::rfc3339")]
     pub created_at: time::OffsetDateTime,
 
     dl_path: String,
@@ -196,37 +193,6 @@ impl Version {
             whole_seconds => "second"
         }
     }
-}
-
-pub fn time03_parse_timestamp<'de, D>(deser: D) -> Result<time::OffsetDateTime, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    use serde::de::Error as _;
-    use serde::Deserialize as _;
-
-    const FORMAT: &[FormatItem<'static>] = time::macros::format_description!(
-        "[year]-[month]-[day]T\
-        [hour]:[minute]:[second].[subsecond digits:6]\
-        [offset_hour sign:mandatory]:[offset_minute]"
-    );
-
-    let s = <std::borrow::Cow<'_, str>>::deserialize(deser)?;
-    time::OffsetDateTime::parse(&s, &FORMAT).map_err(D::Error::custom)
-}
-
-pub fn time03_format_timestamp<S>(
-    time: &time::OffsetDateTime,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: ::serde::Serializer,
-{
-    use serde::ser::Error as _;
-    use serde::ser::Serialize as _;
-    time.format(&Version::FMT)
-        .map_err(S::Error::custom)?
-        .serialize(serializer)
 }
 
 pub mod json {
