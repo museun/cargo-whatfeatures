@@ -35,7 +35,7 @@ The default `theme` as of 0.9.10 is `palette` if you want to use the old one, us
 ## Usage
 
 ```
-cargo-whatfeatures 0.9.10
+cargo-whatfeatures 0.9.11
 the `whatfeatures` command
 
     USAGE:
