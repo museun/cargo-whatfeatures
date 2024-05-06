@@ -575,6 +575,7 @@ impl Args {
             .into_iter()
             .map(|s| s.to_string_lossy().to_string())
             .collect::<Vec<_>>();
+
         match crate_names.len() {
             0 if pkgid.is_some() => {}
             0 if manifest_path.is_some() => {
@@ -738,7 +739,7 @@ CONFIG:
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful]
+        --theme [colorful, basic, palette, none]
             use this provided theme
 
     OPTIONS:
@@ -752,6 +753,7 @@ CONFIG:
 
         --manifest-path <PATH>
             A path to the Cargo.toml you want to read, locally.
+            This can be the root directory to the crate/workspace, or an explicit path to a Cargo.toml
             Use this to read from a local crate, rather than a remote one.
 
         -y, --show-yanked <exclude, include, only>

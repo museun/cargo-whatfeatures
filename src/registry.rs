@@ -152,7 +152,16 @@ impl Crate {
     /// Tries to get the features from a local crate -- without traversing workspace
     pub fn from_local(path: impl Into<PathBuf>) -> anyhow::Result<Workspace> {
         let path = path.into();
-        anyhow::ensure!(path.join("Cargo.toml").is_file(), "invalid manifest path");
+
+        if let Some(file_name) = path.file_name() {
+            anyhow::ensure!(
+                file_name == "Cargo.toml",
+                "Path must be a directory or 'Cargo.toml'"
+            );
+            anyhow::ensure!(path.is_file(), "invalid manifest path");
+        } else {
+            anyhow::ensure!(path.join("Cargo.toml").is_file(), "invalid manifest path");
+        }
 
         let name = path
             .iter()
@@ -188,6 +197,14 @@ impl Crate {
                     break;
                 }
             }
+
+            // if we do not have a directory, use '.' to mean the cwd
+            if !path.is_dir() {
+                let mut path = PathBuf::new();
+                path.push(".");
+                return path;
+            }
+
             path
         }
 

@@ -30,12 +30,10 @@ See https://no-color.org/
 
 if the `WHATFEATURES_THHEME` env-var has a one of the values: `[colorful, basic, palette, none]` the theme will be overriden. This will still honor `NO_COLOR`
 
-The default `theme` as of 0.9.10 is `palette` if you want to use the old one, use the `colorful` theme.
-
 ## Usage
 
 ```
-cargo-whatfeatures 0.9.11
+cargo-whatfeatures 0.9.12
 the `whatfeatures` command
 
     USAGE:
@@ -89,14 +87,16 @@ the `whatfeatures` command
             Purges the local cache. The command will automatically clean up after
             itself if it sees the crate in the cargo local registry. If its not
             in the cargo registry, it'll download the crate from crates.io and place
-            it in its cache. This flag causes that cache to become invalidated.
+            it in its cache.
+
+            This flag causes that cache to become invalidated.
 
             The cache is located at these locations:
             * Linux: $XDG_CACHE_HOME/museun/whatfeatures
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful, palette, none]
+        --theme [basic, colorful]
             use this provided theme
 
     OPTIONS:
@@ -110,6 +110,7 @@ the `whatfeatures` command
 
         --manifest-path <PATH>
             A path to the Cargo.toml you want to read, locally.
+            This can be the root directory to the crate/workspace, or an explicit path to a Cargo.toml
             Use this to read from a local crate, rather than a remote one.
 
         -y, --show-yanked <exclude, include, only>
@@ -126,6 +127,7 @@ the `whatfeatures` command
                  as the crate to operate one
 
                  This is exclusive with -p, --pkgid and with --manifest-path.
+
     CONFIG:
         WHATFEATURES_THEME  [colorful, basic, palette, none]
                             This allows you to override the --theme flag with an environmental variable
