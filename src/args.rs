@@ -575,6 +575,7 @@ impl Args {
             .into_iter()
             .map(|s| s.to_string_lossy().to_string())
             .collect::<Vec<_>>();
+
         match crate_names.len() {
             0 if pkgid.is_some() => {}
             0 if manifest_path.is_some() => {
