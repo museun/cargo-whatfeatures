@@ -753,6 +753,7 @@ CONFIG:
 
         --manifest-path <PATH>
             A path to the Cargo.toml you want to read, locally.
+            This can be the root directory to the crate/workspace, or an explicit path to a Cargo.toml
             Use this to read from a local crate, rather than a remote one.
 
         -y, --show-yanked <exclude, include, only>
