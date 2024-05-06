@@ -84,7 +84,12 @@ the `whatfeatures` command
             Prints out the path to the cache directory
 
         --purge
-            it in its cache. This flag causes that cache to become invalidated.
+            Purges the local cache. The command will automatically clean up after
+            itself if it sees the crate in the cargo local registry. If its not
+            in the cargo registry, it'll download the crate from crates.io and place
+            it in its cache.
+
+            This flag causes that cache to become invalidated.
 
             The cache is located at these locations:
             * Linux: $XDG_CACHE_HOME/museun/whatfeatures

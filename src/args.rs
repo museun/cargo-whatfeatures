@@ -739,7 +739,7 @@ CONFIG:
             * Windows: %LOCALAPPDATA/museun/whatfeatures
             * macOS: $HOME/Library/Caches/museun/whatfeatures
 
-        --theme [basic, colorful]
+        --theme [colorful, basic, palette, none]
             use this provided theme
 
     OPTIONS:
