@@ -48,7 +48,16 @@ where
 
         match list.len() {
             0 => unreachable!("empty tree"),
-            1 => nodes.next().unwrap().print(self.writer, &theme),
+            1 => {
+                if let Some(node) = nodes.next() {
+                    node.print(self.writer, &theme)
+                } else {
+                    Err(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        "An empty tree was returned by cargo-metdata",
+                    ))
+                }
+            }
             _ => {
                 let name = format!(
                     "workspace for {}",
